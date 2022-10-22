@@ -1,14 +1,24 @@
-# Target library
-lib := libuthread.a
-CCFLAGS = -Wall -Wextra -Werror
+lib 	:= libuthread.a
+targets := queue.o $(lib)
+objs	:= queue.o
 
-all: queue.o $(lib) 
+CC 		:= gcc
+CCFLAGS := -Wall -Wextra -Werror -MMD
+CCFLAGS	+= -g
 
-queue.o: queue.c
-	gcc -g $(CCFLAGS) -c queue.c 
+all: $(targets)
 
-$(lib):
-	ar rcs $(lib) queue.o
+deps := $(patsubst %.o,%.d,$(objs))
+-include $(deps)
+
+%.o: %.c
+	@echo "CC $@"
+	@$(CC) $(CCFLAGS) -c -o $@ $<
+
+$(lib): $(objs)
+	@echo "AR $@"
+	@ar rcs $(lib) $^
 
 clean:
-	rm -f libuthread.a queue.o
+	@echo "CLEAN"
+	@rm -f $(targets) $(objs) $(deps)

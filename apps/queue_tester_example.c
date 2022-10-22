@@ -58,7 +58,7 @@ static void iterator_inc(queue_t q, void *data)
         *a += 1;
 }
 
-void printQ(queue_t q, void *data)
+void printQ(void *data)
 {
 	int *a = (int*) data;
 
