@@ -28,7 +28,7 @@ queue_t threadQ;
 
 struct uthread_tcb {
 	uthread_ctx_t* threadCtx;
-	int* stackPointer;
+	char* stackPointer;
 	int state;
 };
 
@@ -41,43 +41,48 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
 	threadQ = queue_create();
 	if(preempt){}; /* dead code, remove after */
+	uthread_create(func, arg);
+	
 
 	/* make idle thread */
 	uthread_ctx_t ctx[1];
 	struct uthread_tcb* idleThread = malloc(sizeof(struct uthread_tcb));
 	idleThread->threadCtx = &ctx[0];
 	idleThread->state = READY;
-	
-	/* Create initial thread */
-	uthread_create(func, arg);
-	struct uthread_tcb* temp = threadQ->head->data;
-	temp->state = RUNNING;
-	
-	struct uthread_tcb* curr = threadQ->head->data;
-	void* toDelete;
-	while(1)
-	{
-		if(uthread_current() == NULL)
-		{
-			break;
-		}
-		else if(curr->state == EXITED)
-		{
-			queue_dequeue(threadQ, &toDelete);
-			struct uthread_tcb* temp = toDelete;
-			uthread_ctx_destroy_stack(temp->stackPointer);
-			free(toDelete);
-		}
 
-		uthread_yield();
-		struct uthread_tcb* temp2 = threadQ->head->data;
-		uthread_ctx_switch(curr->threadCtx, temp2->threadCtx);
-		curr = threadQ->head->data;
-		curr->state = RUNNING;
-	}
+	struct uthread_tcb* newThread = threadQ->head->data;
+	uthread_ctx_switch(&ctx[0], newThread->threadCtx);
+
+	// /* Create initial thread */
+	// uthread_create(func, arg);
+	// struct uthread_tcb* temp = threadQ->head->data;
+	// temp->state = RUNNING;
+	
+	// struct uthread_tcb* curr = threadQ->head->data;
+	// void* toDelete;
+	// while(1)
+	// {
+	// 	if(uthread_current() == NULL)
+	// 	{
+	// 		break;
+	// 	}
+	// 	else if(curr->state == EXITED)
+	// 	{
+	// 		queue_dequeue(threadQ, &toDelete);
+	// 		struct uthread_tcb* temp = toDelete;
+	// 		uthread_ctx_destroy_stack(temp->stackPointer);
+	// 		free(toDelete);
+	// 	}
+
+	// 	uthread_yield();
+	// 	struct uthread_tcb* temp2 = threadQ->head->data;
+	// 	uthread_ctx_switch(curr->threadCtx, temp2->threadCtx);
+	// 	curr = threadQ->head->data;
+	// 	curr->state = RUNNING;
+	// }
 
 	/* switch back to idle thread */
-	uthread_ctx_switch(curr->threadCtx, idleThread->threadCtx);
+	//uthread_ctx_switch(curr->threadCtx, idleThread->threadCtx);
 	return 0;
 }
 
@@ -121,6 +126,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
 	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
+	
 
 	if(newThread == NULL)
 	{
