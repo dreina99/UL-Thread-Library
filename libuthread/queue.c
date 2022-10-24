@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 #include "queue.h"
+#include "private.h"
+
 
 struct node {
 	void* next;
@@ -32,11 +34,13 @@ int queue_length(queue_t queue)
 
 queue_t queue_create(void)
 {
-	struct queue* q = malloc(sizeof(struct queue));
+	queue_t q = malloc(sizeof(queue_t));
+
 	if(q == NULL) 
 	{
 		return NULL;
 	}
+
 	q->head = NULL;
 	q->tail = NULL;
 	return q;
@@ -118,8 +122,6 @@ int queue_delete(queue_t queue, void *data)
 	{
 		return -1;
 	}
-
-	
 	
 	struct node* curr = queue->head;
 	struct node* currPrev = NULL;

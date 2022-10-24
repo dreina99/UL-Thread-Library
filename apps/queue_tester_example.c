@@ -15,15 +15,6 @@ do {									\
 	}									\
 } while(0)
 
-struct node {
-	void* next;
-	void* data;
-};
-
-struct queue {
-	struct node* head;
-	struct node* tail;
-};
 
 /* Create */
 void test_create(void)

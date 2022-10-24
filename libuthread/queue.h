@@ -10,7 +10,8 @@
  *
  * Apart from delete and iterate operations, all operations should be O(1).
  */
-typedef struct queue* queue_t;
+typedef struct queue *queue_t;
+
 
 /*
  * queue_create - Allocate an empty queue
