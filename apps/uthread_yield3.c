@@ -20,27 +20,23 @@ void thread3(void *arg)
 {
 	(void)arg;
 
-	uthread_yield(); // 5  thread2 -> thread1 -> thread3
-	printf("thread3\n"); // 9
+	printf("thread3\n");
 }
 
 void thread2(void *arg)
 {
 	(void)arg;
 
-	uthread_create(thread3, NULL); // 3 threadQ: thread2 -> thread1 -> thread3
-	uthread_yield(); // 4 threadQ: thread1 -> thread3 -> thread2
-	printf("thread2\n"); // 8
+	uthread_create(thread3, NULL);
+	printf("thread2\n");
 }
 
 void thread1(void *arg)
 {
 	(void)arg;
 
-	uthread_create(thread2, NULL); // 1 threadQ: thread1 -> thread2
-	uthread_yield(); // 2 
-	printf("thread1\n"); // 6
-	uthread_yield(); // 7 threadQ: thread3 -> thread2 -> thread1
+	uthread_create(thread2, NULL);
+	printf("thread1\n");
 }
 
 int main(void)

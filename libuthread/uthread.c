@@ -30,7 +30,10 @@ struct uthread_tcb {
 	uthread_ctx_t* threadCtx;
 	char* stackPointer;
 	int state;
+	int threadNum;
 };
+
+uthread_ctx_t ctx[1];
 
 struct uthread_tcb *uthread_current(void)
 {
@@ -39,83 +42,95 @@ struct uthread_tcb *uthread_current(void)
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	threadQ = queue_create();
-	if(preempt){}; /* dead code, remove after */
-	uthread_create(func, arg);
-	
+	int flag = 1;
 
-	/* make idle thread */
-	uthread_ctx_t ctx[1];
+	threadQ = queue_create();
+	
+	/* Store idle thread */
 	struct uthread_tcb* idleThread = malloc(sizeof(struct uthread_tcb));
 	idleThread->threadCtx = &ctx[0];
 	idleThread->state = READY;
-
-	struct uthread_tcb* newThread = threadQ->head->data;
-	uthread_ctx_switch(&ctx[0], newThread->threadCtx);
-
-	// /* Create initial thread */
-	// uthread_create(func, arg);
-	// struct uthread_tcb* temp = threadQ->head->data;
-	// temp->state = RUNNING;
 	
-	// struct uthread_tcb* curr = threadQ->head->data;
-	// void* toDelete;
-	// while(1)
-	// {
-	// 	if(uthread_current() == NULL)
-	// 	{
-	// 		break;
-	// 	}
-	// 	else if(curr->state == EXITED)
-	// 	{
-	// 		queue_dequeue(threadQ, &toDelete);
-	// 		struct uthread_tcb* temp = toDelete;
-	// 		uthread_ctx_destroy_stack(temp->stackPointer);
-	// 		free(toDelete);
-	// 	}
+	/* Create and ctx_switch to initial thread */
+	uthread_create(func, arg);
+	struct uthread_tcb* initThread = threadQ->head->data;
+	initThread->state = RUNNING;
 
-	// 	uthread_yield();
-	// 	struct uthread_tcb* temp2 = threadQ->head->data;
-	// 	uthread_ctx_switch(curr->threadCtx, temp2->threadCtx);
-	// 	curr = threadQ->head->data;
-	// 	curr->state = RUNNING;
-	// }
 
-	/* switch back to idle thread */
-	//uthread_ctx_switch(curr->threadCtx, idleThread->threadCtx);
+	/* Begin infinite loop, break when no more threads ready to run */
+	struct uthread_tcb* currThread = threadQ->head->data;
+	
+	while(1)
+	{	
+		if(flag)
+		{
+			flag = 0;
+			uthread_ctx_switch(&ctx[0], initThread->threadCtx);
+		}
+
+		void* temp;
+		queue_dequeue(threadQ, &temp);
+		currThread = temp;
+
+		if(queue_length(threadQ) == 0)
+		{
+			break;
+		}
+
+		if(currThread->state == EXITED)
+		{
+			uthread_ctx_destroy_stack(currThread->stackPointer);
+			free(currThread);
+			struct uthread_tcb* newHead = threadQ->head->data;
+			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
+		}
+
+
+		if(preempt)
+		{
+			uthread_yield();
+			struct uthread_tcb* nextThread = threadQ->head->data;
+			currThread = nextThread;
+		}
+	}
+		
 	return 0;
 }
 
 void uthread_yield(void)
 {
-	void* yieldingThread; 
-	queue_dequeue(threadQ, &yieldingThread);
-	struct uthread_tcb* temp = yieldingThread;
+	void* temp; 
+	queue_dequeue(threadQ, &temp);
+	struct uthread_tcb* yieldingThread = temp;
+	struct uthread_tcb* newHead = threadQ->head->data;
 	
-	
-	if(temp->state == RUNNING)
+	if(yieldingThread->state == RUNNING)
 	{
-		temp->state = READY;
-		queue_enqueue(threadQ, temp);
+		yieldingThread->state = READY;
+		queue_enqueue(threadQ, yieldingThread);
 	}
 
-	
-	else if (temp->state == EXITED)
-	{
-		uthread_ctx_destroy_stack(temp->stackPointer);
-		free(temp);
-	}
+	newHead->state = RUNNING;
+	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
 
 void uthread_exit(void)
 {
 	/* TODO Phase 2 */
+	if(uthread_current() == NULL)
+	{
+		exit(0);
+	}
+
 	struct uthread_tcb* currThread = uthread_current();
 	
 	if(currThread->state == RUNNING || currThread->state == READY)
 	{
 		currThread->state = EXITED;
 	}
+
+	struct uthread_tcb* currProcess = threadQ->head->data;
+	uthread_ctx_switch(currProcess->threadCtx, &ctx[0]);
 	
 	exit(0);
 }
@@ -126,27 +141,25 @@ int uthread_create(uthread_func_t func, void *arg)
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
 	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
+	newThread->state = READY;
 	
-
-	if(newThread == NULL)
+		
+	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) || newThread == NULL)
 	{
 		return -1;
 	}
 
-	/* init context*/
-	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) == -1)
-	{
-		return -1;
-	}
-
+	
 	queue_enqueue(threadQ, newThread);
+	newThread->threadNum = queue_length(threadQ);
+
 	return 0;
 }
 
-void uthread_block(void)
-{
-	/* TODO Phase 4 */
-}
+// void uthread_block(void)
+// {
+// 	/* TODO Phase 4 */
+// }
 
 // void uthread_unblock(struct uthread_tcb *uthread)
 // {
