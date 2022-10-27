@@ -3,8 +3,7 @@ programs := \
 	queue_tester_example.x \
 	uthread_hello.x \
 	uthread_yield.x \
-	uthread_yield2.x \
-	uthread_yield3.x
+	sem_simple.x
 
 # FIXME: Remove this in student version
 programs += \

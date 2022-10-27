@@ -13,6 +13,7 @@
 #define RUNNING 0
 #define READY 1
 #define EXITED 2
+#define BLOCKED 3
 
 struct node {
 	void* next;
@@ -42,8 +43,6 @@ struct uthread_tcb *uthread_current(void)
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	int flag = 1;
-
 	threadQ = queue_create();
 	
 	/* Store idle thread */
@@ -55,37 +54,39 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	uthread_create(func, arg);
 	struct uthread_tcb* initThread = threadQ->head->data;
 	initThread->state = RUNNING;
-
+	uthread_ctx_switch(&ctx[0], initThread->threadCtx);
 
 	/* Begin infinite loop, break when no more threads ready to run */
 	struct uthread_tcb* currThread = threadQ->head->data;
-	
-	while(1)
-	{	
-		if(flag)
-		{
-			flag = 0;
-			uthread_ctx_switch(&ctx[0], initThread->threadCtx);
-		}
 
+	while(1)
+	{
 		void* temp;
 		queue_dequeue(threadQ, &temp);
 		currThread = temp;
 
+		/* If no more threads to schedule, break */
 		if(queue_length(threadQ) == 0)
 		{
 			break;
 		}
 
+		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
 			uthread_ctx_destroy_stack(currThread->stackPointer);
 			free(currThread);
+
+			/* ctx_switch to new head, if new head is blocked yield */
 			struct uthread_tcb* newHead = threadQ->head->data;
+			if(newHead->state == BLOCKED)
+			{
+				uthread_yield();
+			}
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
 
-
+		/* If we are in preemptive mode */
 		if(preempt)
 		{
 			uthread_yield();
@@ -93,7 +94,10 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			currThread = nextThread;
 		}
 	}
-		
+
+	/* Destroy the empty queue */
+	queue_destroy(threadQ);
+	
 	return 0;
 }
 
@@ -104,19 +108,31 @@ void uthread_yield(void)
 	struct uthread_tcb* yieldingThread = temp;
 	struct uthread_tcb* newHead = threadQ->head->data;
 	
-	if(yieldingThread->state == RUNNING)
+	/* If yieldingThread hasn't finished, change to ready and re-enqueue */
+	if(yieldingThread->state == RUNNING || yieldingThread->state == READY)
 	{
 		yieldingThread->state = READY;
 		queue_enqueue(threadQ, yieldingThread);
 	}
 
+	/* If yieldingThread is blocked, just re-enqueue */
+	if(yieldingThread->state == BLOCKED)
+	{
+		queue_enqueue(threadQ, yieldingThread);
+	}
+
+	// /* If new head is blocked, call yield() again */
+	// if(newHead->state == BLOCKED)
+	// {
+	// 	uthread_yield();
+	// }
+	
 	newHead->state = RUNNING;
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
 
 void uthread_exit(void)
 {
-	/* TODO Phase 2 */
 	if(uthread_current() == NULL)
 	{
 		exit(0);
@@ -129,8 +145,7 @@ void uthread_exit(void)
 		currThread->state = EXITED;
 	}
 
-	struct uthread_tcb* currProcess = threadQ->head->data;
-	uthread_ctx_switch(currProcess->threadCtx, &ctx[0]);
+	uthread_ctx_switch(currThread->threadCtx, &ctx[0]);
 	
 	exit(0);
 }
@@ -142,13 +157,11 @@ int uthread_create(uthread_func_t func, void *arg)
 	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
 	newThread->state = READY;
-	
 		
 	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) || newThread == NULL)
 	{
 		return -1;
 	}
-
 	
 	queue_enqueue(threadQ, newThread);
 	newThread->threadNum = queue_length(threadQ);
@@ -156,12 +169,15 @@ int uthread_create(uthread_func_t func, void *arg)
 	return 0;
 }
 
-// void uthread_block(void)
-// {
-// 	/* TODO Phase 4 */
-// }
+void uthread_block(void)
+{
+	struct uthread_tcb* head = uthread_current();
+	head->state = BLOCKED;
+	uthread_yield();
+}
 
-// void uthread_unblock(struct uthread_tcb *uthread)
-// {
-// 	/* TODO Phase 4 */
-// }
+void uthread_unblock(struct uthread_tcb *uthread)
+{
+	uthread->state = READY;
+	// uthread_yield();
+}

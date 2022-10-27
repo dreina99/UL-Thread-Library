@@ -1,6 +1,6 @@
 lib 	:= libuthread.a
 targets := $(lib)
-objs	:= queue.o uthread.o preempt.o private.o 
+objs	:= queue.o uthread.o preempt.o private.o sem.o
 
 CC 		:= gcc
 CCFLAGS := -Wall -Wextra -Werror -MMD

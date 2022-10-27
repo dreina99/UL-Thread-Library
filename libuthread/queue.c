@@ -49,7 +49,7 @@ queue_t queue_create(void)
 int queue_destroy(queue_t queue)
 {
 	/* If queue is NULL */ 
-	if((queue->head == NULL && queue->tail == NULL) || queue_length(queue) == 0)
+	if((queue->head == NULL && queue->tail == NULL) || queue_length(queue) != 0)
 	{
 		return -1;
 	}
