@@ -82,6 +82,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			if(newHead->state == BLOCKED)
 			{
 				uthread_yield();
+				continue;
 			}
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
@@ -121,11 +122,11 @@ void uthread_yield(void)
 		queue_enqueue(threadQ, yieldingThread);
 	}
 
-	// /* If new head is blocked, call yield() again */
-	// if(newHead->state == BLOCKED)
-	// {
-	// 	uthread_yield();
-	// }
+	/* If new head is blocked, call yield() again */
+	if(newHead->state == BLOCKED)
+	{
+		uthread_yield();
+	}
 	
 	newHead->state = RUNNING;
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
@@ -179,5 +180,4 @@ void uthread_block(void)
 void uthread_unblock(struct uthread_tcb *uthread)
 {
 	uthread->state = READY;
-	// uthread_yield();
 }

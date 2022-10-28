@@ -67,7 +67,7 @@ int sem_down(sem_t sem)
 	/* If the lock is taken, block this thread */
 	if(sem->count == 0)
 	{
-		queue_enqueue(sem->blockedQ, threadQ->head);
+		queue_enqueue(sem->blockedQ, threadQ->head->data);
 		uthread_block();
 		return 0;
 	}
