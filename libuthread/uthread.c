@@ -26,6 +26,7 @@ struct queue {
 };
 
 queue_t threadQ;
+int flag;
 
 struct uthread_tcb {
 	uthread_ctx_t* threadCtx;
@@ -81,6 +82,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			struct uthread_tcb* newHead = threadQ->head->data;
 			if(newHead->state == BLOCKED)
 			{
+				flag = 1;
 				uthread_yield();
 				continue;
 			}
@@ -100,6 +102,14 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	queue_destroy(threadQ);
 	
 	return 0;
+}
+
+void printQ(queue_t q, void *data)
+{
+        if(q){}
+        struct uthread_tcb* curNode = data;
+
+        printf("state: %d\n", curNode->state);
 }
 
 void uthread_yield(void)
@@ -129,6 +139,14 @@ void uthread_yield(void)
 	}
 	
 	newHead->state = RUNNING;
+	
+	if(flag)
+	{
+		flag = 0;
+		uthread_ctx_switch(&ctx[0], newHead->threadCtx);
+		return;
+	}
+
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
 
@@ -145,7 +163,7 @@ void uthread_exit(void)
 	{
 		currThread->state = EXITED;
 	}
-
+	
 	uthread_ctx_switch(currThread->threadCtx, &ctx[0]);
 	
 	exit(0);

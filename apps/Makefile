@@ -3,6 +3,8 @@ programs := \
 	queue_tester_example.x \
 	uthread_hello.x \
 	uthread_yield.x \
+	sem_count.x \
+	sem_prime.x \
 	sem_simple.x
 
 # FIXME: Remove this in student version
