@@ -86,7 +86,7 @@ int sem_up(sem_t sem)
 	}
 
 	/* If lock is already unlocked, do nothing */
-	if(sem->count == 1)
+	if(sem->count >= 1)
 	{
 		return 0;
 	}

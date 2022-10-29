@@ -26,7 +26,7 @@ struct queue {
 };
 
 queue_t threadQ;
-int flag;
+int blockedFlag;
 
 struct uthread_tcb {
 	uthread_ctx_t* threadCtx;
@@ -82,19 +82,20 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			struct uthread_tcb* newHead = threadQ->head->data;
 			if(newHead->state == BLOCKED)
 			{
-				flag = 1;
+				blockedFlag = 1;
 				uthread_yield();
 				continue;
 			}
+
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
 
 		/* If we are in preemptive mode */
 		if(preempt)
 		{
-			uthread_yield();
-			struct uthread_tcb* nextThread = threadQ->head->data;
-			currThread = nextThread;
+			// uthread_yield();
+			// struct uthread_tcb* nextThread = threadQ->head->data;
+			// currThread = nextThread;
 		}
 	}
 
@@ -104,6 +105,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	return 0;
 }
 
+/* queue_funct_t function to print states of threads in threadQ */
 void printQ(queue_t q, void *data)
 {
         if(q){}
@@ -117,8 +119,14 @@ void uthread_yield(void)
 	void* temp; 
 	queue_dequeue(threadQ, &temp);
 	struct uthread_tcb* yieldingThread = temp;
-	struct uthread_tcb* newHead = threadQ->head->data;
-	
+	struct uthread_tcb* newHead;
+
+	/* In case there is only one thread in queue */
+	if(queue_length(threadQ))
+	{
+		newHead = threadQ->head->data;
+	}
+
 	/* If yieldingThread hasn't finished, change to ready and re-enqueue */
 	if(yieldingThread->state == RUNNING || yieldingThread->state == READY)
 	{
@@ -129,6 +137,15 @@ void uthread_yield(void)
 	/* If yieldingThread is blocked, just re-enqueue */
 	if(yieldingThread->state == BLOCKED)
 	{
+		/* If this was the only thread in the queue and its blocked */
+		if(queue_length(threadQ) == 0)
+		{
+			yieldingThread->state = RUNNING;
+			queue_enqueue(threadQ, yieldingThread);
+			uthread_ctx_switch(yieldingThread->threadCtx, yieldingThread->threadCtx);
+			return;
+		}
+
 		queue_enqueue(threadQ, yieldingThread);
 	}
 
@@ -140,9 +157,10 @@ void uthread_yield(void)
 	
 	newHead->state = RUNNING;
 	
-	if(flag)
+	
+	if(blockedFlag)
 	{
-		flag = 0;
+		blockedFlag = 0;
 		uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		return;
 	}

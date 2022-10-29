@@ -5,6 +5,7 @@ programs := \
 	uthread_yield.x \
 	sem_count.x \
 	sem_prime.x \
+	sem_buffer.x \
 	sem_simple.x
 
 # FIXME: Remove this in student version
