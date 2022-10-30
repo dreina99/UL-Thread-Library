@@ -34,7 +34,7 @@ int queue_length(queue_t queue)
 
 queue_t queue_create(void)
 {
-	queue_t q = malloc(sizeof(queue_t));
+	queue_t q = malloc(sizeof(struct queue));
 
 	if(q == NULL) 
 	{
@@ -48,8 +48,8 @@ queue_t queue_create(void)
 
 int queue_destroy(queue_t queue)
 {
-	/* If queue is NULL */ 
-	if((queue->head == NULL && queue->tail == NULL) || queue_length(queue) != 0)
+	/* If queue is NULL or not empty */ 
+	if(queue == NULL || queue_length(queue) != 0)
 	{
 		return -1;
 	}

@@ -32,7 +32,7 @@ extern queue_t threadQ;
 
 sem_t sem_create(size_t count)
 {
-	sem_t sem = malloc(sizeof(sem_t));
+	sem_t sem = malloc(sizeof(struct semaphore));
 
 	if(sem == NULL)
 	{
@@ -83,12 +83,6 @@ int sem_up(sem_t sem)
 	if(sem == NULL)
 	{
 		return -1;
-	}
-
-	/* If lock is already unlocked, do nothing */
-	if(sem->count >= 1)
-	{
-		return 0;
 	}
 
 	/* If releasing the lock, unblock first waiting thread */

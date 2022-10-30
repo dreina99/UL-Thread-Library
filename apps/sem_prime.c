@@ -41,7 +41,8 @@ static void source(void *arg)
 
 	for (i = 2; i <= max; i++) {
 		c->value = i;
-		sem_up(c->consume);
+		sem_up(c->consume); // sets consumer (sink) to be ready
+		//printf("Im here %ld\n", i);
 		sem_down(c->produce);
 	}
 
@@ -56,9 +57,9 @@ static void filter(void *arg)
 {
 	struct filter *f = (struct filter*) arg;
 	int value;
-
 	while (1) {
 		sem_down(f->left->consume);
+		
 		value = f->left->value;
 		sem_up(f->left->produce);
 		if ((value == -1) || (value % f->prime != 0)) {
@@ -69,7 +70,7 @@ static void filter(void *arg)
 		if (value == -1)
 			break;
 	}
-
+	
 	sem_destroy(f->left->produce);
 	sem_destroy(f->left->consume);
 	free(f->left);

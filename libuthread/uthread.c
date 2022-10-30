@@ -32,7 +32,6 @@ struct uthread_tcb {
 	uthread_ctx_t* threadCtx;
 	char* stackPointer;
 	int state;
-	int threadNum;
 };
 
 uthread_ctx_t ctx[1];
@@ -56,7 +55,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	struct uthread_tcb* initThread = threadQ->head->data;
 	initThread->state = RUNNING;
 	uthread_ctx_switch(&ctx[0], initThread->threadCtx);
-
+	
 	/* Begin infinite loop, break when no more threads ready to run */
 	struct uthread_tcb* currThread = threadQ->head->data;
 
@@ -65,18 +64,19 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		void* temp;
 		queue_dequeue(threadQ, &temp);
 		currThread = temp;
-
-		/* If no more threads to schedule, break */
-		if(queue_length(threadQ) == 0)
-		{
-			break;
-		}
-
+		
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
+			free(currThread->threadCtx);
 			uthread_ctx_destroy_stack(currThread->stackPointer);
 			free(currThread);
+
+			/* If no more threads to schedule, break */
+			if(queue_length(threadQ) == 0)
+			{
+				break;
+			}
 
 			/* ctx_switch to new head, if new head is blocked yield */
 			struct uthread_tcb* newHead = threadQ->head->data;
@@ -87,6 +87,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 				continue;
 			}
 
+			newHead->state = RUNNING;
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
 
@@ -99,8 +100,9 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		}
 	}
 
-	/* Destroy the empty queue */
+	/* Destroy the empty queue and free idleThread */
 	queue_destroy(threadQ);
+	free(idleThread);
 	
 	return 0;
 }
@@ -157,14 +159,13 @@ void uthread_yield(void)
 	
 	newHead->state = RUNNING;
 	
-	
 	if(blockedFlag)
 	{
 		blockedFlag = 0;
 		uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		return;
 	}
-
+	
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
 
@@ -191,7 +192,7 @@ int uthread_create(uthread_func_t func, void *arg)
 {
 	/* create new tcb */
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
-	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
+	newThread->threadCtx = malloc(sizeof(ucontext_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
 	newThread->state = READY;
 		
@@ -201,7 +202,6 @@ int uthread_create(uthread_func_t func, void *arg)
 	}
 	
 	queue_enqueue(threadQ, newThread);
-	newThread->threadNum = queue_length(threadQ);
 
 	return 0;
 }
