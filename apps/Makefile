@@ -9,16 +9,6 @@ programs := \
 	sem_corner.x \
 	sem_simple.x
 
-# FIXME: Remove this in student version
-programs += \
-	queue_usage_example.x \
-	queue_grader.x \
-	uthread_preempt.x \
-	sem_buffer.x \
-	sem_count.x \
-	sem_prime.x \
-	sem_simple.x
-
 # User-level thread library
 UTHREADLIB := libuthread
 UTHREADPATH := ../$(UTHREADLIB)
@@ -49,7 +39,7 @@ CFLAGS	+= -pipe
 ifneq ($(D),1)
 CFLAGS	+= -O2
 else
-CFLAGS	+= -g 
+CFLAGS	+= -g
 endif
 ## Include path
 CFLAGS 	+= -I$(UTHREADPATH)

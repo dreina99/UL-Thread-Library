@@ -45,11 +45,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
 	threadQ = queue_create();
 	
-	/* Store idle thread */
-	struct uthread_tcb* idleThread = malloc(sizeof(struct uthread_tcb));
-	idleThread->threadCtx = &ctx[0];
-	idleThread->state = READY;
-	
 	/* Create and ctx_switch to initial thread */
 	uthread_create(func, arg);
 	struct uthread_tcb* initThread = threadQ->head->data;
@@ -71,9 +66,12 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
-			free(currThread->threadCtx);
+			// printf("about to delete currThread SP: %p\n", currThread->stackPointer);
+			// TODO: uthread_ctx_destroy_stack() IS SOMETIMES DOUBLE FREEING STACK POINTERS
+			// FIX: ALLOW A MEMORY LEAK... COMMENT OUT ONE OF THE FREEs
 			uthread_ctx_destroy_stack(currThread->stackPointer);
-			free(currThread);
+			free(currThread->threadCtx);
+			// free(currThread);
 
 			/* If no more threads to schedule, break */
 			if(queue_length(threadQ) == 0)
@@ -87,6 +85,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
 
+
 		/* If we are in preemptive mode */
 		if(preempt)
 		{
@@ -98,7 +97,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 	/* Destroy the empty queue and free idleThread */
 	queue_destroy(threadQ);
-	free(idleThread);
 	
 	return 0;
 }
@@ -125,7 +123,6 @@ void uthread_yield(void)
 	queue_dequeue(threadQ, &temp);
 	struct uthread_tcb* yieldingThread = temp;
 	struct uthread_tcb* newHead = threadQ->head->data;
-
 
 	/* If yieldingThread hasn't finished, change to ready and re-enqueue */
 	if(yieldingThread->state == RUNNING || yieldingThread->state == READY)
@@ -164,6 +161,8 @@ int uthread_create(uthread_func_t func, void *arg)
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
 	newThread->threadCtx = malloc(sizeof(ucontext_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
+	// printf("malloc'd currThread SP: %p\n", newThread->stackPointer);
+	
 	newThread->state = READY;
 		
 	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) || newThread == NULL)
