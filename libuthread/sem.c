@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "uthread.h"
 
 #include "queue.h"
 #include "sem.h"
@@ -57,6 +58,7 @@ int sem_destroy(sem_t sem)
 	return 0;
 }
 
+
 int sem_down(sem_t sem)
 {
 	if(sem == NULL)
@@ -64,16 +66,28 @@ int sem_down(sem_t sem)
 		return -1;
 	}
 
-	/* If the lock is taken, block this thread */
-	if(sem->count == 0)
-	{
-		queue_enqueue(sem->blockedQ, threadQ->head->data);
-		uthread_block();
-		return 0;
+	int initFlag = 1;
+
+	while(sem->count == 0)
+	{	
+		/* On first iteration */
+		if(initFlag)
+		{
+			initFlag = 0;
+
+			/* Add to blocked queue */
+			queue_enqueue(sem->blockedQ, uthread_current());
+
+			/* Change state to blocked */
+			uthread_current()->state = 3;
+		}
+
+		/* Yield until semaphore becomes available */
+		uthread_yield();
 	}
 
-	/* If it's unlocked, decrement semaphore's count */
-	sem->count--;
+	/* Once it becomes available take it i.e. decrement semaphore's count */
+	sem->count -= 1;
 
 	return 0;
 }
@@ -85,21 +99,16 @@ int sem_up(sem_t sem)
 		return -1;
 	}
 
-	/* If releasing the lock, unblock first waiting thread */
-	if(sem->count == 0)
-	{
-		/* Unblock first in blockedQ if it isn't empty */
-		if(queue_length(sem->blockedQ))
-		{
-			void* temp;
-			queue_dequeue(sem->blockedQ, &temp);
-			struct uthread_tcb* head = temp;
-			uthread_unblock(head);
-		}
-	}
-
 	/* Release the lock */
-	sem->count++;
+	sem->count += 1;
+
+	/* Wake up first thread in blockedQ */
+	if(queue_length(sem->blockedQ))
+	{
+		void* pop;
+		queue_dequeue(sem->blockedQ, &pop);
+		queue_enqueue(threadQ, pop);
+	}
 
 	return 0;
 }

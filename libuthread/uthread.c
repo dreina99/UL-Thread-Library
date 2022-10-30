@@ -80,13 +80,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 			/* ctx_switch to new head, if new head is blocked yield */
 			struct uthread_tcb* newHead = threadQ->head->data;
-			if(newHead->state == BLOCKED)
-			{
-				blockedFlag = 1;
-				uthread_yield();
-				continue;
-			}
-
 			newHead->state = RUNNING;
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
@@ -136,35 +129,7 @@ void uthread_yield(void)
 		queue_enqueue(threadQ, yieldingThread);
 	}
 
-	/* If yieldingThread is blocked, just re-enqueue */
-	if(yieldingThread->state == BLOCKED)
-	{
-		/* If this was the only thread in the queue and its blocked */
-		if(queue_length(threadQ) == 0)
-		{
-			yieldingThread->state = RUNNING;
-			queue_enqueue(threadQ, yieldingThread);
-			uthread_ctx_switch(yieldingThread->threadCtx, yieldingThread->threadCtx);
-			return;
-		}
-
-		queue_enqueue(threadQ, yieldingThread);
-	}
-
-	/* If new head is blocked, call yield() again */
-	if(newHead->state == BLOCKED)
-	{
-		uthread_yield();
-	}
-	
 	newHead->state = RUNNING;
-	
-	if(blockedFlag)
-	{
-		blockedFlag = 0;
-		uthread_ctx_switch(&ctx[0], newHead->threadCtx);
-		return;
-	}
 	
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
