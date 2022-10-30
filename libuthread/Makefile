@@ -1,6 +1,6 @@
 lib 	:= libuthread.a
 targets := $(lib)
-objs	:= queue.o uthread.o preempt.o private.o sem.o
+objs	:= queue.o uthread.o preempt.o context.o sem.o
 
 CC 		:= gcc
 CCFLAGS := -Wall -Wextra -Werror -MMD
@@ -13,7 +13,7 @@ deps := $(patsubst %.o,%.d,$(objs))
 
 %.o: %.c
 	@echo "CC $@"
-	$(CC) $(CCFLAGS) -c -o $@ $<
+	@$(CC) $(CCFLAGS) -c -o $@ $<
 
 $(lib): $(objs)
 	@echo "AR $@"

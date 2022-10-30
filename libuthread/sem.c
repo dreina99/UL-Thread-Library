@@ -58,7 +58,6 @@ int sem_destroy(sem_t sem)
 	return 0;
 }
 
-
 int sem_down(sem_t sem)
 {
 	if(sem == NULL)

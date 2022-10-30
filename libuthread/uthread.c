@@ -62,7 +62,10 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	while(1)
 	{
 		void* temp;
-		queue_dequeue(threadQ, &temp);
+
+		if(queue_dequeue(threadQ, &temp) == -1) /* If dequeue fails */
+			break;
+
 		currThread = temp;
 		
 		/* If currThread finished, free allocated memory */
@@ -111,16 +114,18 @@ void printQ(queue_t q, void *data)
 
 void uthread_yield(void)
 {
+	/* If there is only one thread in the queue, then we have no threads to yield to */
+	if(queue_length(threadQ) == 1)
+	{
+		uthread_current()->state = EXITED;
+		uthread_ctx_switch(uthread_current()->threadCtx, &ctx[0]);
+	}
+
 	void* temp; 
 	queue_dequeue(threadQ, &temp);
 	struct uthread_tcb* yieldingThread = temp;
-	struct uthread_tcb* newHead;
+	struct uthread_tcb* newHead = threadQ->head->data;
 
-	/* In case there is only one thread in queue */
-	if(queue_length(threadQ))
-	{
-		newHead = threadQ->head->data;
-	}
 
 	/* If yieldingThread hasn't finished, change to ready and re-enqueue */
 	if(yieldingThread->state == RUNNING || yieldingThread->state == READY)

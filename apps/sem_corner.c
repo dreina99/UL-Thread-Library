@@ -15,7 +15,7 @@ sem_t sem1;
 void threadC(void *arg)
 {
 	(void)arg;
-    sem_down(sem1); // C (0) -> A (1)
+    sem_down(sem1);
     printf("C\n");
 
 }
@@ -23,7 +23,7 @@ void threadC(void *arg)
 void threadB(void *arg)
 {
 	(void)arg;  
-    sem_up(sem1); // B (0) -> C (1)
+    sem_up(sem1);
     printf("B\n");
 }
 
@@ -32,8 +32,8 @@ void threadA(void *arg)
 	(void)arg;
 
     uthread_create(threadB, NULL); 
-    uthread_create(threadC, NULL); // A (0) -> B (1) -> C (1)
-    sem_down(sem1); // B (0) -> C (1)
+    uthread_create(threadC, NULL);
+    sem_down(sem1);
     printf("A\n");
 }
 
