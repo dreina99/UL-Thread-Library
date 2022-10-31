@@ -1,30 +1,35 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "uthread.h"
 
+#include "private.h"
 #include "queue.h"
 #include "sem.h"
-#include "private.h"
+#include "uthread.h"
 
-struct node {
+
+struct node 
+{
 	void* next;
 	void* data;
 };
 
-struct queue {
+struct queue 
+{
 	struct node* head;
 	struct node* tail;
 };
 
-struct uthread_tcb {
+struct uthread_tcb 
+{
 	uthread_ctx_t* threadCtx;
 	char* stackPointer;
 	int state;
 	int threadNum;
 };
 
-struct semaphore {
+struct semaphore 
+{
 	int count;
 	queue_t blockedQ;
 };
@@ -76,13 +81,10 @@ int sem_down(sem_t sem)
 
 			/* Add to blocked queue */
 			queue_enqueue(sem->blockedQ, uthread_current());
-
-			/* Change state to blocked */
-			uthread_current()->state = 3;
 		}
 
-		/* Yield until semaphore becomes available */
-		uthread_yield();
+		/* Block until semaphore becomes available */
+		uthread_block();
 	}
 
 	/* Once it becomes available take it i.e. decrement semaphore's count */
@@ -101,12 +103,14 @@ int sem_up(sem_t sem)
 	/* Release the lock */
 	sem->count += 1;
 
-	/* Wake up first thread in blockedQ */
+	/* 'Wake up' first thread in blockedQ */
 	if(queue_length(sem->blockedQ))
 	{
 		void* pop;
 		queue_dequeue(sem->blockedQ, &pop);
-		queue_enqueue(threadQ, pop);
+
+		struct uthread_tcb* wakingThread = pop;
+		uthread_unblock(wakingThread);
 	}
 
 	return 0;

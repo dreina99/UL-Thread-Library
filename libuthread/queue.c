@@ -6,19 +6,33 @@
 #include "queue.h"
 #include "private.h"
 
-
-struct node {
+struct node 
+{
 	void* next;
 	void* data;
 };
 
-struct queue {
+struct queue 
+{
 	struct node* head;
 	struct node* tail;
 };
 
+/**
+ * @brief Gets the length of a queue parameter
+ *
+ * @param queue The queue for which to find the length
+ * @return Returns integer length of queue, -1 if queue does 
+ * not exist
+ */
 int queue_length(queue_t queue)
 {
+	/* Check if queue exists */
+	if(queue == NULL)
+	{
+		return -1;
+	}
+
 	/* Iterate from head of queue */
 	int length = 0;
 	struct node* curNode = queue->head;
@@ -32,6 +46,13 @@ int queue_length(queue_t queue)
 	return length;
 }
 
+/**
+ * @brief Creates a struct queue data type, initializes head 
+ * and tail to NULL
+ *
+ * @param none 
+ * @return Returns a struct queue address 
+ */
 queue_t queue_create(void)
 {
 	queue_t q = malloc(sizeof(struct queue));
@@ -46,6 +67,13 @@ queue_t queue_create(void)
 	return q;
 }
 
+/**
+ * @brief Destroys an empty @queue
+ *
+ * @param queue The queue for which to destroy
+ * @return Returns 0 if @queue was freed successfully,
+ * returns -1 if @queue is NULL or not empty
+ */
 int queue_destroy(queue_t queue)
 {
 	/* If queue is NULL or not empty */ 
@@ -56,9 +84,16 @@ int queue_destroy(queue_t queue)
 	
 	free(queue);
 	return 0;
-	
 }
 
+/**
+ * @brief Enqueues the address of @data into @queue
+ *
+ * @param queue The queue for which to enqueue data
+ * @param data Address of data to enqueue
+ * @return Returns -1 if @queue or @data is NULL,
+ * returns 0 if enqueue was successful
+ */
 int queue_enqueue(queue_t queue, void *data)
 {
 	/* Check for NULL queue or data*/

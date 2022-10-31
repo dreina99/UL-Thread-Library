@@ -15,42 +15,83 @@
 #define EXITED 2
 #define BLOCKED 3
 
-struct node {
+struct node 
+{
 	void* next;
 	void* data;
 };
 
-struct queue {
+struct queue 
+{
 	struct node* head;
 	struct node* tail;
 };
 
-queue_t threadQ;
-int blockedFlag;
-
-struct uthread_tcb {
+struct uthread_tcb 
+{
 	uthread_ctx_t* threadCtx;
 	char* stackPointer;
 	int state;
 };
 
+/* Keep the queue of threads and idleThread context global */
+queue_t threadQ;
 uthread_ctx_t ctx[1];
 
+
+/**
+ * @brief queue_funct_t Helper function, prints out state's of given queue starting from head end
+ *
+ * @param q Queue whose state's we want printed
+ * @param data The current node we are at in the queue
+ * @return none
+ */
+void printQ(queue_t q, void *data)
+{
+        if(q){}
+        struct uthread_tcb* curNode = data;
+
+        printf("state: %d\n", curNode->state);
+}
+
+
+/**
+ * @brief Get current running thread
+ *
+ * @param none
+ * @return struct uthread_tcb of the current running thread 
+ */
 struct uthread_tcb *uthread_current(void)
 {
 	return threadQ->head->data;
 }
 
+
+/**
+ * @brief Runs the multithreading library
+ *
+ * @param preempt Boolean value to enable preemption
+ * @param func Function of the first thread to start
+ * @param arg Arguments to be passed to the first thread
+ * @return int - 0 in case of success, -1 in case of failure
+ */
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	threadQ = queue_create();
+	threadQ = queue_create(); /* Initialize queue */
 	
 	/* Create and ctx_switch to initial thread */
 	uthread_create(func, arg);
 	struct uthread_tcb* initThread = threadQ->head->data;
 	initThread->state = RUNNING;
+
+	/* If we are in preemptive mode */
+	if(preempt)
+	{
+		preempt_start(true);
+	}
+
 	uthread_ctx_switch(&ctx[0], initThread->threadCtx);
-	
+
 	/* Begin infinite loop, break when no more threads ready to run */
 	struct uthread_tcb* currThread = threadQ->head->data;
 
@@ -58,17 +99,18 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	{
 		void* temp;
 
+		preempt_disable();
 		if(queue_dequeue(threadQ, &temp) == -1) /* If dequeue fails */
+		{	
 			break;
+		}
+		preempt_enable();
 
 		currThread = temp;
 		
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
-			// printf("about to delete currThread SP: %p\n", currThread->stackPointer);
-			// TODO: uthread_ctx_destroy_stack() IS SOMETIMES DOUBLE FREEING STACK POINTERS
-			// FIX: ALLOW A MEMORY LEAK... COMMENT OUT ONE OF THE FREEs
 			uthread_ctx_destroy_stack(currThread->stackPointer);
 			free(currThread->threadCtx);
 			// free(currThread);
@@ -84,43 +126,41 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 			newHead->state = RUNNING;
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
-
-
-		/* If we are in preemptive mode */
-		if(preempt)
-		{
-			// uthread_yield();
-			// struct uthread_tcb* nextThread = threadQ->head->data;
-			// currThread = nextThread;
-		}
 	}
 
-	/* Destroy the empty queue and free idleThread */
+	/* Destroy the empty queue */
 	queue_destroy(threadQ);
-	
+
+	/* Restore timer and sigaction configurations */
+	if(preempt)
+	{
+		preempt_stop();
+	}
+
 	return 0;
 }
 
-/* queue_funct_t function to print states of threads in threadQ */
-void printQ(queue_t q, void *data)
-{
-        if(q){}
-        struct uthread_tcb* curNode = data;
 
-        printf("state: %d\n", curNode->state);
-}
-
+/**
+ * @brief Current running thread can yield for other threads to execute 
+ *
+ * @param none
+ * @return none
+ */
 void uthread_yield(void)
 {
 	/* If there is only one thread in the queue, then we have no threads to yield to */
 	if(queue_length(threadQ) == 1)
 	{
-		uthread_current()->state = EXITED;
-		uthread_ctx_switch(uthread_current()->threadCtx, &ctx[0]);
+		return;
 	}
 
-	void* temp; 
+	void* temp;
+
+	preempt_disable(); 
 	queue_dequeue(threadQ, &temp);
+	preempt_enable();
+
 	struct uthread_tcb* yieldingThread = temp;
 	struct uthread_tcb* newHead = threadQ->head->data;
 
@@ -128,14 +168,24 @@ void uthread_yield(void)
 	if(yieldingThread->state == RUNNING || yieldingThread->state == READY)
 	{
 		yieldingThread->state = READY;
+
+		preempt_disable();
 		queue_enqueue(threadQ, yieldingThread);
+		preempt_enable();
 	}
 
 	newHead->state = RUNNING;
-	
+
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
 
+
+/**
+ * @brief Exit from the current running thread
+ *
+ * @param none
+ * @return none
+ */
 void uthread_exit(void)
 {
 	if(uthread_current() == NULL)
@@ -155,13 +205,20 @@ void uthread_exit(void)
 	exit(0);
 }
 
+
+/**
+ * @brief Create a new thread
+ *
+ * @param func Function to be executed by created thread
+ * @param arg Arguments to be passed to the created thread
+ * @return none
+ */
 int uthread_create(uthread_func_t func, void *arg)
 {
 	/* create new tcb */
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
 	newThread->threadCtx = malloc(sizeof(ucontext_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
-	// printf("malloc'd currThread SP: %p\n", newThread->stackPointer);
 	
 	newThread->state = READY;
 		
@@ -170,19 +227,38 @@ int uthread_create(uthread_func_t func, void *arg)
 		return -1;
 	}
 	
+	preempt_disable();
 	queue_enqueue(threadQ, newThread);
+	preempt_enable();
 
 	return 0;
 }
 
+
+/**
+ * @brief Block current running thread
+ *
+ * @param none
+ * @return none
+ */
 void uthread_block(void)
 {
-	struct uthread_tcb* head = uthread_current();
-	head->state = BLOCKED;
+	uthread_current()->state = BLOCKED;
 	uthread_yield();
 }
 
-void uthread_unblock(struct uthread_tcb *uthread)
+
+/**
+ * @brief Unblock current running thread
+ *
+ * @param uthread TCB of thread we want to unblock
+ * @return none
+ */
+void uthread_unblock(struct uthread_tcb* uthread)
 {
 	uthread->state = READY;
+
+	preempt_disable();
+	queue_enqueue(threadQ, uthread);
+	preempt_enable();
 }
