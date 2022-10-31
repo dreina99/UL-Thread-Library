@@ -46,7 +46,7 @@ uthread_ctx_t ctx[1];
  * @param data The current node we are at in the queue
  * @return none
  */
-void printQ(queue_t q, void *data)
+void printQ(queue_t q, void* data)
 {
         if(q){}
         struct uthread_tcb* curNode = data;
@@ -61,7 +61,7 @@ void printQ(queue_t q, void *data)
  * @param none
  * @return struct uthread_tcb of the current running thread 
  */
-struct uthread_tcb *uthread_current(void)
+struct uthread_tcb* uthread_current(void)
 {
 	return threadQ->head->data;
 }
@@ -75,7 +75,7 @@ struct uthread_tcb *uthread_current(void)
  * @param arg Arguments to be passed to the first thread
  * @return int - 0 in case of success, -1 in case of failure
  */
-int uthread_run(bool preempt, uthread_func_t func, void *arg)
+int uthread_run(bool preempt, uthread_func_t func, void* arg)
 {
 	threadQ = queue_create(); /* Initialize queue */
 	
@@ -213,7 +213,7 @@ void uthread_exit(void)
  * @param arg Arguments to be passed to the created thread
  * @return none
  */
-int uthread_create(uthread_func_t func, void *arg)
+int uthread_create(uthread_func_t func, void* arg)
 {
 	/* create new tcb */
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));

@@ -26,15 +26,28 @@ struct itimerval oldValue;
 int timerType;
 
 
-/* Signal handler for SIGVTALRM */
+/**
+ * @brief Signal handler for SIGVTALRM, yields to next available thread
+ *
+ * @param none
+ * @return none
+ */
 void preempt_handler(int signum)
 {
-	signum = signum;
-	// printf("Pre-empting...\n");
-	// queue_iterate(threadQ, printQ3);
-	uthread_yield(); /* Force currently running thread to yield */
+	/* Force currently running thread to yield */
+	if(signum)
+	{
+		uthread_yield(); 
+	}
 }
 
+
+/**
+ * @brief Disable preemption
+ *
+ * @param none
+ * @return none
+ */
 void preempt_disable(void)
 {
 	/* Add SIGVTALRM to blocked signals */	
@@ -42,6 +55,13 @@ void preempt_disable(void)
 	sigprocmask(SIG_BLOCK, &ss, NULL);
 }
 
+
+/**
+ * @brief Enable preemption
+ *
+ * @param none
+ * @return none
+ */
 void preempt_enable(void)
 {
 	/* Remove SIGVTALRM from blocked signals */
@@ -50,6 +70,13 @@ void preempt_enable(void)
 	sigprocmask(SIG_UNBLOCK, &ss, NULL);
 }
 
+
+/**
+ * @brief Start thread preemption, create a timer that raises SIGVTALRM every 100Hz
+ *
+ * @param preempt Enable preemption if true
+ * @return none
+ */
 void preempt_start(bool preempt)
 {
 	/* If we don't want preemption, do nothing */
@@ -79,10 +106,16 @@ void preempt_start(bool preempt)
 	setitimer(timerType, &newValue, &oldValue);
 }
 
+
+/**
+ * @brief Stop thread preemption, restore previous timer and sigaction configurations
+ *
+ * @param none
+ * @return none
+ */
 void preempt_stop(void)
 {
 	/* Restore previous sigaction and timer configurations */
 	sigaction(SIGVTALRM, &oldHandler, NULL);
 	setitimer(timerType, &oldValue, NULL);
 }
-

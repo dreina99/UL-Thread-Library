@@ -16,13 +16,18 @@ do {									\
 } while(0)
 
 
-/* queue_create */
+/**
+ * @brief Test queue_create() 
+ */
 void test_create(void)
 {
 	TEST_ASSERT(queue_create() != NULL);
 }
 
-/* queue_iterate, queue_length, queue_delete, queue_enqueue */
+
+/**
+ * @brief Test queue_iterate(), queue_length(), queue_delete() and queue_enqueue()
+ */
 void test_iterator(void)
 {
 	void iterator_inc(queue_t q, void *data)
@@ -50,7 +55,10 @@ void test_iterator(void)
     TEST_ASSERT(queue_length(q) == 9);
 }
 
-/* queue_dequeue */
+
+/**
+ * @brief Test queue_dequeue() and queue_enqueue()
+ */
 void test_queue_simple(void)
 {
 	int data = 3, *ptr;
@@ -63,6 +71,9 @@ void test_queue_simple(void)
 }
 
 
+/**
+ * @brief Helper queue_func_t function to test queue_iterate()
+ */
 void printQ(queue_t q, void *data)
 {
 	if(q){}
@@ -71,7 +82,10 @@ void printQ(queue_t q, void *data)
 	printf("%d\n", *a);
 }
 
-/* queue_delete on empty queue */
+
+/**
+ * @brief Test queue_delete() on empty queue
+ */
 void test_delete_empty(void)
 {
 	queue_t q;
@@ -81,7 +95,10 @@ void test_delete_empty(void)
 	TEST_ASSERT(queue_delete(q, a) == -1);
 }
 
-/* queue_destroy on NULL queue */
+
+/**
+ * @brief Test queue_destroy() on NULL queue
+ */
 void test_destroy_null(void)
 {
     queue_t q;
@@ -89,7 +106,10 @@ void test_destroy_null(void)
 	TEST_ASSERT(queue_destroy(q) == -1);
 }
 
-/* queue_destroy on non-empty queue */
+
+/**
+ * @brief Test queue_destroy() on non-empty queue
+ */
 void test_destroy_nonempty(void)
 {
     queue_t q;
@@ -99,7 +119,10 @@ void test_destroy_nonempty(void)
 	TEST_ASSERT(queue_destroy(q) == -1);
 }
 
-/* queue_delete on single node queue */
+
+/**
+ * @brief Test queue_delete() on single node queue
+ */
 void test_delete_single(void)
 {
 	queue_t q;
@@ -110,7 +133,10 @@ void test_delete_single(void)
 	TEST_ASSERT(queue_delete(q, ptr) == 0);
 }
 
-/* queue_iterate on NULL func and NULL queue */
+
+/**
+ * @brief Test queue_iterate() on NULL params
+ */
 void test_iterate_null(void)
 {
 	queue_t q;
@@ -122,14 +148,41 @@ void test_iterate_null(void)
 	TEST_ASSERT(queue_iterate(q, func) == -1);
 }
 
-void test_dequeue_null(void)
+
+/**
+ * @brief Test queue_dequeue() on empty queue
+ */
+void test_dequeue_empty(void)
 {
 	queue_t q;
-	void *ptr;
+	void* ptr;
 	q = queue_create();
 
 	TEST_ASSERT(queue_dequeue(q, &ptr) == -1);
 }
+
+
+/**
+ * @brief Test all possibile returns for queue_length()
+ */
+void test_queue_length(void)
+{
+	queue_t q1;
+	queue_t q2;
+	queue_t q3;
+	int data = 3;
+
+	q1 = queue_create();
+	q2 = queue_create();
+	q3 = NULL;
+
+	queue_enqueue(q1, &data);
+
+	TEST_ASSERT(queue_length(q1) == 1);
+	TEST_ASSERT(queue_length(q2) == 0);
+	TEST_ASSERT(queue_length(q3) == -1);
+}
+
 
 int main(void)
 {
@@ -137,10 +190,11 @@ int main(void)
 	test_queue_simple();
     test_iterator();
 	test_delete_empty();
-    test_destroy_null();
     test_destroy_nonempty();
 	test_delete_single();
 	test_iterate_null();
-	test_dequeue_null();
+	test_dequeue_empty();
+	test_queue_length();
+	
 	return 0;
 }

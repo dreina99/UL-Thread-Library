@@ -1,13 +1,14 @@
 # Target programs
 programs := \
-	queue_tester_example.x \
+	queue_tester.x \
 	uthread_hello.x \
 	uthread_yield.x \
 	sem_count.x \
 	sem_prime.x \
 	sem_buffer.x \
 	sem_corner.x \
-	preempt_test.x \
+	test_preempt.x \
+	preempt_disable_test.x \
 	sem_simple.x
 
 # User-level thread library

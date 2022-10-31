@@ -34,8 +34,16 @@ struct semaphore
 	queue_t blockedQ;
 };
 
+/* Extern to get access to threadQ  */
 extern queue_t threadQ;
 
+
+/**
+ * @brief Allocate and initialize a semaphore
+ *
+ * @param count Count to initialize semaphore with
+ * @return Pointer to initialized semaphore, NULL in case of failure
+ */
 sem_t sem_create(size_t count)
 {
 	sem_t sem = malloc(sizeof(struct semaphore));
@@ -51,6 +59,13 @@ sem_t sem_create(size_t count)
 	return sem;
 }
 
+
+/**
+ * @brief Deallocate a sempahore
+ *
+ * @param sem The semaphore to deallocate
+ * @return Returns 0 if freed successfully, -1 otherwise
+ */
 int sem_destroy(sem_t sem)
 {
 	if(queue_length(sem->blockedQ) || sem == NULL)
@@ -63,6 +78,13 @@ int sem_destroy(sem_t sem)
 	return 0;
 }
 
+
+/**
+ * @brief Take a resource from the semaphore, block current thread if resource is unavailable
+ *
+ * @param sem Semaphore to take
+ * @return Returns 0 if taken successfully, -1 if sem is NULL
+ */
 int sem_down(sem_t sem)
 {
 	if(sem == NULL)
@@ -93,6 +115,13 @@ int sem_down(sem_t sem)
 	return 0;
 }
 
+
+/**
+ * @brief Release a resource to the semaphore, unblock first in blocked queue if any
+ *
+ * @param sem Semaphore to release
+ * @return Returns 0 if released successfully, -1 if sem is NULL
+ */
 int sem_up(sem_t sem)
 {	
 	if(sem == NULL)
@@ -115,4 +144,3 @@ int sem_up(sem_t sem)
 
 	return 0;
 }
-

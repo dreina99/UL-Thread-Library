@@ -1,7 +1,7 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "queue.h"
 #include "private.h"
@@ -18,12 +18,13 @@ struct queue
 	struct node* tail;
 };
 
+
 /**
  * @brief Gets the length of a queue parameter
  *
  * @param queue The queue for which to find the length
- * @return Returns integer length of queue, -1 if queue does 
- * not exist
+ * @return Returns integer length of queue, -1 if queue is
+ * NULL
  */
 int queue_length(queue_t queue)
 {
@@ -46,6 +47,7 @@ int queue_length(queue_t queue)
 	return length;
 }
 
+
 /**
  * @brief Creates a struct queue data type, initializes head 
  * and tail to NULL
@@ -67,6 +69,7 @@ queue_t queue_create(void)
 	return q;
 }
 
+
 /**
  * @brief Destroys an empty @queue
  *
@@ -86,6 +89,7 @@ int queue_destroy(queue_t queue)
 	return 0;
 }
 
+
 /**
  * @brief Enqueues the address of @data into @queue
  *
@@ -94,7 +98,7 @@ int queue_destroy(queue_t queue)
  * @return Returns -1 if @queue or @data is NULL,
  * returns 0 if enqueue was successful
  */
-int queue_enqueue(queue_t queue, void *data)
+int queue_enqueue(queue_t queue, void* data)
 {
 	/* Check for NULL queue or data*/
 	if(queue == NULL || data == NULL)
@@ -121,7 +125,17 @@ int queue_enqueue(queue_t queue, void *data)
 	return 0;
 }
 
-int queue_dequeue(queue_t queue, void **data)
+
+/**
+ * @brief Dequeues the head of @queue and assigns its 
+ * data to @data 
+ *
+ * @param queue The queue to be popped
+ * @param data Address of data pointer to be assigned
+ * @return Returns -1 if @queue, @data is NULL, or 
+ * length of queue is 0, returns 0 if dequeue was successful
+ */
+int queue_dequeue(queue_t queue, void** data)
 {
 	/* fail case */
 	if((queue == NULL) || !queue_length(queue) || data == NULL)
@@ -150,7 +164,17 @@ int queue_dequeue(queue_t queue, void **data)
 	return 0;
 }
 
-int queue_delete(queue_t queue, void *data)
+
+/**
+ * @brief Deletes the item in @queue equal to @data,
+ * updates @ queue accordingly.
+ *
+ * @param queue The queue to delete from
+ * @param data Data to find and delete
+ * @return Returns -1 if @queue, @data is NULL, or 
+ * data is not found, returns 0 if delete was successful
+ */
+int queue_delete(queue_t queue, void* data)
 {
 	/* Check for NULL queue or data*/
 	if(queue == NULL || data == NULL)
@@ -189,16 +213,27 @@ int queue_delete(queue_t queue, void *data)
 			{
 				currPrev->next = curr->next;
 			}
-			//free(curr);
 			return 0;
 		}
+
 		/* update nodes */
 		currPrev = curr;
 		curr = curr->next;
 	}
+
 	return -1;
 }
 
+
+/**
+ * @brief Calls given callback function @func on each item
+ * within @queue
+ *
+ * @param queue The queue to iterate through
+ * @param func Function to be called on each queue item
+ * @return Returns -1 if @queue, @func is NULL,  
+ * returns 0 if iterate was successful
+ */
 int queue_iterate(queue_t queue, queue_func_t func)
 {
 	if(queue == NULL || func == NULL)
