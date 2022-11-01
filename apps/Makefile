@@ -8,7 +8,6 @@ programs := \
 	sem_buffer.x \
 	sem_corner.x \
 	test_preempt.x \
-	preempt_disable_test.x \
 	sem_simple.x
 
 # User-level thread library

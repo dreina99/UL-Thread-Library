@@ -78,7 +78,7 @@ struct uthread_tcb* uthread_current(void)
 int uthread_run(bool preempt, uthread_func_t func, void* arg)
 {
 	threadQ = queue_create(); /* Initialize queue */
-	
+
 	/* Create and ctx_switch to initial thread */
 	uthread_create(func, arg);
 	struct uthread_tcb* initThread = threadQ->head->data;
@@ -93,7 +93,7 @@ int uthread_run(bool preempt, uthread_func_t func, void* arg)
 	uthread_ctx_switch(&ctx[0], initThread->threadCtx);
 
 	/* Begin infinite loop, break when no more threads ready to run */
-	struct uthread_tcb* currThread = threadQ->head->data;
+	struct uthread_tcb* currThread;
 
 	while(1)
 	{
@@ -113,7 +113,7 @@ int uthread_run(bool preempt, uthread_func_t func, void* arg)
 		{
 			uthread_ctx_destroy_stack(currThread->stackPointer);
 			free(currThread->threadCtx);
-			// free(currThread);
+			free(currThread);
 
 			/* If no more threads to schedule, break */
 			if(queue_length(threadQ) == 0)
@@ -124,6 +124,7 @@ int uthread_run(bool preempt, uthread_func_t func, void* arg)
 			/* ctx_switch to new head, if new head is blocked yield */
 			struct uthread_tcb* newHead = threadQ->head->data;
 			newHead->state = RUNNING;
+
 			uthread_ctx_switch(&ctx[0], newHead->threadCtx);
 		}
 	}
@@ -217,9 +218,8 @@ int uthread_create(uthread_func_t func, void* arg)
 {
 	/* create new tcb */
 	struct uthread_tcb* newThread = malloc(sizeof(struct uthread_tcb));
-	newThread->threadCtx = malloc(sizeof(ucontext_t));
+	newThread->threadCtx = uthread_ctx_alloc_stack();
 	newThread->stackPointer = uthread_ctx_alloc_stack();
-	
 	newThread->state = READY;
 		
 	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) || newThread == NULL)
