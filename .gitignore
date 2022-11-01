@@ -2,4 +2,4 @@
 *.x
 *.d
 *.a
-contexts_fixed_schedule.c
+*.txt
