@@ -8,14 +8,14 @@
 
 struct node 
 {
-	void* next;
-	void* data;
+	void *next;
+	void *data;
 };
 
 struct queue 
 {
-	struct node* head;
-	struct node* tail;
+	struct node *head;
+	struct node *tail;
 };
 
 
@@ -36,7 +36,7 @@ int queue_length(queue_t queue)
 
 	/* Iterate from head of queue */
 	int length = 0;
-	struct node* curNode = queue->head;
+	struct node *curNode = queue->head;
 	
 	while(curNode != NULL)
 	{
@@ -98,7 +98,7 @@ int queue_destroy(queue_t queue)
  * @return Returns -1 if @queue or @data is NULL,
  * returns 0 if enqueue was successful
  */
-int queue_enqueue(queue_t queue, void* data)
+int queue_enqueue(queue_t queue, void *data)
 {
 	/* Check for NULL queue or data*/
 	if(queue == NULL || data == NULL)
@@ -107,7 +107,7 @@ int queue_enqueue(queue_t queue, void* data)
 	}
 
 	/* Create new node to enqueue */
-	struct node* newNode = malloc(sizeof(struct node));
+	struct node *newNode = malloc(sizeof(struct node));
 	newNode->data = data;
 	newNode->next = NULL;
 
@@ -135,7 +135,7 @@ int queue_enqueue(queue_t queue, void* data)
  * @return Returns -1 if @queue, @data is NULL, or 
  * length of queue is 0, returns 0 if dequeue was successful
  */
-int queue_dequeue(queue_t queue, void** data)
+int queue_dequeue(queue_t queue, void **data)
 {
 	/* fail case */
 	if((queue == NULL) || !queue_length(queue) || data == NULL)
@@ -144,7 +144,7 @@ int queue_dequeue(queue_t queue, void** data)
 	}
 
 	/* save head node */
-	struct node* front = queue->head;
+	struct node *front = queue->head;
 	
 	/* if queue has one item, empty queue */
 	if(queue_length(queue) == 1)
@@ -167,14 +167,14 @@ int queue_dequeue(queue_t queue, void** data)
 
 /**
  * @brief Deletes the item in @queue equal to @data,
- * updates @ queue accordingly.
+ * updates @queue accordingly.
  *
  * @param queue The queue to delete from
  * @param data Data to find and delete
  * @return Returns -1 if @queue, @data is NULL, or 
  * data is not found, returns 0 if delete was successful
  */
-int queue_delete(queue_t queue, void* data)
+int queue_delete(queue_t queue, void *data)
 {
 	/* Check for NULL queue or data*/
 	if(queue == NULL || data == NULL)
@@ -182,8 +182,8 @@ int queue_delete(queue_t queue, void* data)
 		return -1;
 	}
 	
-	struct node* curr = queue->head;
-	struct node* currPrev = NULL;
+	struct node *curr = queue->head;
+	struct node *currPrev = NULL;
 
 	/* loop through list */
 	while(curr)
@@ -200,7 +200,6 @@ int queue_delete(queue_t queue, void* data)
 			else if(curr == queue->head)
 			{
 				queue->head = curr->next;
-				printf("%d\n", *(int *)queue->head->data);
 			}
 			/* if data found at tail, set new tail */
 			else if(curr == queue->tail)
@@ -241,7 +240,7 @@ int queue_iterate(queue_t queue, queue_func_t func)
 		return -1;
 	}
 
-	struct node* curNode = queue->head;
+	struct node *curNode = queue->head;
 	
 	while(curNode != NULL)
 	{

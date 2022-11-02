@@ -27,7 +27,7 @@ struct test4 {
 
 #define clamp(x, y) (((x) <= (y)) ? (x) : (y))
 
-static void consumer(void* arg)
+static void consumer(void *arg)
 {
 	struct test4 *t = (struct test4*)arg;
 	size_t out = 0;
@@ -50,7 +50,7 @@ static void consumer(void* arg)
 	}
 }
 
-static void producer(void* arg)
+static void producer(void *arg)
 {
 	struct test4 *t = (struct test4*)arg;
 	size_t count = 0;

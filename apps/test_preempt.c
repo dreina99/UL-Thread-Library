@@ -32,7 +32,7 @@ void delay(int milliseconds)
     long pause;
     clock_t now,then;
 
-    pause = milliseconds*(CLOCKS_PER_SEC/1000);
+    pause = milliseconds * (CLOCKS_PER_SEC/1000);
     now = then = clock();
     while( (now-then) < pause )
 	{
@@ -42,21 +42,21 @@ void delay(int milliseconds)
 	return;
 }
 
-void thread3(void* arg)
+void thread3(void *arg)
 {
 	(void)arg;
 	delay(1000);
 	printf("thread3\n");
 }
 
-void thread2(void* arg)
+void thread2(void *arg)
 {
 	(void)arg;
 	uthread_create(thread3, NULL);
 	printf("thread2\n");
 }
 
-void thread1(void* arg)
+void thread1(void *arg)
 {
 	(void)arg;
 	uthread_create(thread2, NULL);

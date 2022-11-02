@@ -10,20 +10,20 @@
 
 struct node 
 {
-	void* next;
-	void* data;
+	void *next;
+	void *data;
 };
 
 struct queue 
 {
-	struct node* head;
-	struct node* tail;
+	struct node *head;
+	struct node *tail;
 };
 
 struct uthread_tcb 
 {
-	uthread_ctx_t* threadCtx;
-	char* stackPointer;
+	uthread_ctx_t *threadCtx;
+	char *stackPointer;
 	int state;
 	int threadNum;
 };
@@ -135,10 +135,10 @@ int sem_up(sem_t sem)
 	/* 'Wake up' first thread in blockedQ */
 	if(queue_length(sem->blockedQ))
 	{
-		void* pop;
+		void *pop;
 		queue_dequeue(sem->blockedQ, &pop);
 
-		struct uthread_tcb* wakingThread = pop;
+		struct uthread_tcb *wakingThread = pop;
 		uthread_unblock(wakingThread);
 	}
 
