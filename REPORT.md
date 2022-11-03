@@ -122,7 +122,7 @@ Tests the preemption of various threads using `delay()` to control the order of 
 
 #### *test_preempt_disable.c*
 
-Tests `preempt_disable()` and `preempt_enable()` over the execution of various threads using `delay()` to control the order of execution. The sequence of this tester is as follows:
+Tests `preempt_disable()` and `preempt_enable()` over the execution of various threads using `delay()` to control the order of execution. We included `private.h` for testing purposes, normally user code would not be able to disable or enable preemption. The sequence of this tester is as follows:
 
 1. `thread1` enqueues `thread2`, calls `preempt_disable()`, and enters a delay of 5 seconds.
 2. Since preempts were disabled, `thread1` will wait the full 5 second delay without getting preempted, print, and then exit.
@@ -137,7 +137,7 @@ Tests `preempt_disable()` and `preempt_enable()` over the execution of various t
 
 #### *test_preempt_stop.c*
 
-Tests `preempt_stop()` over the execution various of threads using `delay()` to control the order of execution. The sequence of this tester is as follows:
+Tests `preempt_stop()` over the execution various of threads using `delay()` to control the order of execution. We included `private.h` for testing purposes, normally user code would not be able to stop preemption. The sequence of this tester is as follows:
 
 1. `thread1` enqueues `thread2`, calls `preempt_stop()`, then enters a delay of 5 seconds.
 2. Since we restored action and timer configurations, preemption will not call our custom signal handler.
