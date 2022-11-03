@@ -67,6 +67,21 @@ struct uthread_tcb *uthread_current(void)
 }
 
 
+
+void delete_threads(queue_t q)
+{
+	if(q){}
+	struct node *curNode = q->head;
+	
+	while(curNode != NULL)
+	{
+		curNode = curNode->next;
+		void *temp;
+		queue_dequeue(q, &temp);
+		free(temp);
+	}
+}
+
 /**
  * @brief Runs the multithreading library
  *
@@ -78,6 +93,7 @@ struct uthread_tcb *uthread_current(void)
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
 	threadQ = queue_create(); /* Initialize queue */
+	queue_t deleteQ = queue_create();
 
 	/* Create and ctx_switch to initial thread */
 	uthread_create(func, arg);
@@ -111,9 +127,9 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
+			queue_enqueue(deleteQ, currThread);
 			uthread_ctx_destroy_stack(currThread->stackPointer);
 			free(currThread->threadCtx);
-			free(currThread);
 
 			/* If no more threads to schedule, break */
 			if(queue_length(threadQ) == 0)
@@ -129,8 +145,12 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		}
 	}
 
-	/* Destroy the empty queue */
+	/* Delete all exited threads */
+	delete_threads(deleteQ);
+
+	/* Destroy the queues */
 	queue_destroy(threadQ);
+	queue_destroy(deleteQ);
 
 	/* Restore timer and sigaction configurations */
 	if(preempt)

@@ -1,7 +1,8 @@
 # **User-level Thread Library Implementation**
 
 ## **Implementation**
-Our implementation of this program is broken down into the creation of four APIs:
+Our implementation of this program is broken down into the creation of four 
+APIs:
 
 1. Queue API
 2. Uthread API
@@ -11,26 +12,34 @@ Our implementation of this program is broken down into the creation of four APIs
 <br>
 
 ## **Queue API**
-We decided to implement our queue using a linked list, each node in the list is a `struct node` containing members for:
+We decided to implement our queue using a linked list, each node in the list is
+a `struct node` containing members for:
 
 * `node *next`
 * `void *data`
 
-The `next` member holds the address to the next node in the linked list, while the `data` member holds the address of any data type since its a `void*`. In our use-case, the data member will hold the address of a thread's TCB which we will define later.
+The `next` member holds the address to the next node in the linked list, while
+the `data` member holds the address of any data type since its a `void*`. In
+our use-case, the data member will hold the address of a thread's TCB which we
+will define later.
 
-As for the Queue API functions, we implemented them as specified by the documentation in `queue.h`.
+As for the Queue API functions, we implemented them as specified by the
+documentation in `queue.h`.
 
 ### *Testing*
-We created unit tests for every function defined in our Queue API. Our main goal was to reach 100% coverage in `queue.c`, but we also made sure to test for corner cases such as dequeueing or deleting the last node in the linked list.
+We created unit tests for every function defined in our Queue API. Our main
+goal was to reach 100% coverage in `queue.c`, but we also made sure to test for
+corner cases such as dequeueing or deleting the last node in the linked list.
 
-We also created several integration tests to make sure that the functions were working simultaneously.
+We also created several integration tests to make sure that the functions were
+working simultaneously.
 
 <br>
 
 ## **Uthread API**
 
-The Uthread API is implemented using a queue of thread_tcb structs that are 
-continuously updated as threads are created, yielded, and exited. Our 
+The Uthread API is implemented using a queue of thread_tcb structs that are
+continuously updated as threads are created, yielded, and exited. Our
 thread_tcb structs hold three important pieces of information:
 
 * `uthread_ctx_t *threadCtx`
@@ -44,7 +53,7 @@ the program to perform certain actions when a thread is in each state.
 
 The lifecycle of a multithreaded process always begins in uthread_run where we
 save the idle thread, then create and switch to the new context. Once the first
-thread is created, the process will only return to uthread_run once a thread 
+thread is created, the process will only return to uthread_run once a thread
 has exited. Uthread_run manages exited threads within a while loop. This loop
 either deallocates the memory for exited threads or breaks the loop if there
 are no threads to be scheduled. In the while loop, we always pop the first
@@ -54,13 +63,13 @@ thread in the queue will have the state EXITED, in which case it should be
 removed from the queue.
 
 It is important to note that uthread_run only handles threads that are exited
-and all thread to thread context switches are handled completely in 
+and all thread to thread context switches are handled completely in
 uthread_yield. This design choice reflects our emphasis on simplicity as 
 uthread_yield only needs to dequeue the thread queue, change states, and switch
 between thread contexts.
 
 Uthread_create and uthread_exit are fairly straightforward functions. The first
-allocates memory for a thread and saves it into our thread queue, while the 
+allocates memory for a thread and saves it into our thread queue, while the
 latter only sets a thread state and returns to uthread_run to handle memory
 deallocation.
 
@@ -84,24 +93,24 @@ Our semaphore struct contains two data members:
 * `queue_t blockedQ`
 
 Count represents the number of resources available in the semaphore for threads
-and blockedQ is a queue that holds all of the blocked threads that are 
+and blockedQ is a queue that holds all of the blocked threads that are
 "asleep," waiting for the semaphore's resources to become available. We decided
-to keep the blockedQ strictly in the sem.c file as it was simpler and created 
-less clutter in uthread.c. 
+to keep the blockedQ strictly in the sem.c file as it was simpler and created
+less clutter in uthread.c.
 
 Sem_down handles removing a resource from the semaphore and blocks threads that
 call semaphores with 0 resources available. Threads that call sem_down when the
 semaphore has 0 resources are continuously blocked in a while loop so that they
-stay asleep and do not claim the semaphore's resources at the wrong time. We 
-used a flag to enqueue threads into a blocked queue only on the thread's 
+stay asleep and do not claim the semaphore's resources at the wrong time. We
+used a flag to enqueue threads into a blocked queue only on the thread's
 entrance into the while loop, so that multiple instances of the same thread do
 not get added to the blocked queue.
 
 Sem_up handles freeing a semaphore's resource and unblocks the first
 waiting thread in the blockedQ if there are threads waiting. This happens by 
 dequeueing the first element in the blockedQ and calling uthread_unblock, which 
-will change the thread's state and add it back into uthread.c's threadQ so it 
-can be scheduled as normal. 
+will change the thread's state and add it back into uthread.c's threadQ so it
+can be scheduled as normal.
 
 ### *Testing*
 Along with the provided test files, we created our own file named sem_corner.c 
@@ -125,11 +134,16 @@ To implement preemption we followed these steps:
 
 Of these steps, the only noteworthy part was the creation of the virtual timer. 
 
-To restore the original timer configuration and previous action associated with `SIGVTALRM`, we made sure to store their previous configrations in global variables `struct sigaction oldHandler` and `struct itimerval oldValue`.
+To restore the original timer configuration and previous action associated with
+`SIGVTALRM`, we made sure to store their previous configrations in global
+variables `struct sigaction oldHandler` and `struct itimerval oldValue`.
 
- We did this by using the third parameter of both `sigaction()` and `setitimer()` when calling them initially to store the previous action and timer configurations. 
+ We did this by using the third parameter of both `sigaction()` and
+ `setitimer()` when calling them initially to store the previous action and
+ timer configurations. 
 
-But the previous configurations are not actually restored until we call `preempt_stop()` which executes:
+But the previous configurations are not actually restored until we call
+`preempt_stop()` which executes:
 
 * `sigaction(SIGVTALRM, &oldHandler, NULL)`
 * `setitimer(timerType, &oldValue, NULL)`
