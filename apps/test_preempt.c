@@ -4,11 +4,11 @@
  *
  * Sequence:
  * Thread1 enqueues thread2 and then enters a delay for 2 seconds which will preempt to thread2.
- * Thread2 enqueues thread3 and then enters a delay for 1 second which will preempt to thread3.    
- * Thread3 then prints and exits and context switches to thread1. 
+ * Thread2 enqueues thread3 and then enters a delay for 1 second which will preempt to thread3.
+ * Thread3 then prints and exits and context switches to thread1.
  * Thread1 will then resume its delay() causing it to once again preempt to thread2.
- * This back and forth preemption continues until thread2 finishes its delay, prints,   
- * and then exits, context switching to thread1.  
+ * This back and forth preemption continues until thread2 finishes its delay, prints,
+ * and then exits, context switching to thread1.
  * Thread1 will then print and exit, finishing the program.
  *
  * Output:

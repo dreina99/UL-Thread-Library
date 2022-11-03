@@ -15,19 +15,19 @@
 #define EXITED 2
 #define BLOCKED 3
 
-struct node 
+struct node
 {
 	void *next;
 	void *data;
 };
 
-struct queue 
+struct queue
 {
 	struct node *head;
 	struct node *tail;
 };
 
-struct uthread_tcb 
+struct uthread_tcb
 {
 	uthread_ctx_t *threadCtx;
 	char *stackPointer;
@@ -57,7 +57,7 @@ void printQ(queue_t q, void *data)
  * @brief Get current running thread
  *
  * @param none
- * @return struct uthread_tcb of the current running thread 
+ * @return struct uthread_tcb of the current running thread
  */
 struct uthread_tcb *uthread_current(void)
 {
@@ -98,13 +98,13 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 		preempt_disable();
 		if(queue_dequeue(threadQ, &popped) == -1) /* If dequeue fails */
-		{	
+		{
 			break;
 		}
 		preempt_enable();
 
 		currThread = popped;
-		
+
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
 		{
@@ -138,7 +138,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 }
 
 /**
- * @brief Current running thread can yield for other threads to execute 
+ * @brief Current running thread can yield for other threads to execute
  *
  * @param none
  * @return none
@@ -153,7 +153,7 @@ void uthread_yield(void)
 
 	void *popped;
 
-	preempt_disable(); 
+	preempt_disable();
 	queue_dequeue(threadQ, &popped);
 	preempt_enable();
 
@@ -189,14 +189,14 @@ void uthread_exit(void)
 	}
 
 	struct uthread_tcb *currThread = uthread_current();
-	
+
 	if(currThread->state == RUNNING || currThread->state == READY)
 	{
 		currThread->state = EXITED;
 	}
-	
+
 	uthread_ctx_switch(currThread->threadCtx, &ctx[0]);
-	
+
 	exit(0);
 }
 

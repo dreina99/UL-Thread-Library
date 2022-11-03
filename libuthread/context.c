@@ -54,13 +54,11 @@ int uthread_ctx_init(uthread_ctx_t *uctx, void *top_of_stack,
 	if (getcontext(uctx))
 		return -1;
 
-	
 	/*
 	 * Change context @uctx's stack to the specified stack
 	 */
 	uctx->uc_stack.ss_sp = top_of_stack;
 	uctx->uc_stack.ss_size = UTHREAD_STACK_SIZE;
-	
 
 	/*
 	 * Finish setting up context @uctx:

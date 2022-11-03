@@ -48,7 +48,7 @@ void printQ(queue_t q, void *data)
 /* HELPER FUNCTIONS END */
 
 /**
- * @brief Test queue_create() 
+ * @brief Test queue_create()
  */
 void test_create(void)
 {
@@ -80,7 +80,7 @@ void test_iterator(void)
  */
 void test_queue_simple(void)
 {
-	int data = 3; 
+	int data = 3;
 	int *ptr;
 	queue_t q;
 
@@ -146,7 +146,7 @@ void test_iterate_null(void)
 	queue_t q;
 	q = NULL;
 	TEST_ASSERT(queue_iterate(q, printQ) == -1);
-	
+
 	q = queue_create();
 	queue_func_t func = NULL;
 	TEST_ASSERT(queue_iterate(q, func) == -1);

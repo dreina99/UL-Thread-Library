@@ -7,7 +7,7 @@
  * Thread1 enqueues thread2, restores previous configurations, then enters a delay of 5 seconds.
  * If preempt_stop() is working correctly, thread1 should not call our custom signal handler
  * which calls uthread_yield() but rather wait the full delay of 5 seconds, print, and then exit.
- * Thread2 is then scheduled to run and it prints then exits, finishing the program. 
+ * Thread2 is then scheduled to run and it prints then exits, finishing the program.
  *
  * Output:
  * thread1

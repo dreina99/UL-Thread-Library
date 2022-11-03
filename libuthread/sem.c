@@ -7,7 +7,7 @@
 #include "sem.h"
 #include "uthread.h"
 
-struct semaphore 
+struct semaphore
 {
 	int count;
 	queue_t blockedQ;
@@ -30,7 +30,7 @@ sem_t sem_create(size_t count)
 
 	sem->count = count;
 	sem->blockedQ = queue_create();
-	
+
 	return sem;
 }
 
@@ -68,7 +68,7 @@ int sem_down(sem_t sem)
 	int initFlag = 1;
 
 	while(sem->count == 0)
-	{	
+	{
 		/* On first iteration */
 		if(initFlag)
 		{
@@ -95,7 +95,7 @@ int sem_down(sem_t sem)
  * @return Returns 0 if released successfully, -1 if sem is NULL
  */
 int sem_up(sem_t sem)
-{	
+{
 	if(sem == NULL)
 	{
 		return -1;

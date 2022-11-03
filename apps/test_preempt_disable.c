@@ -5,10 +5,10 @@
  *
  * Sequence:
  * Thread1 enqueues thread2, disables preempts, and enters a delay of 5 seconds.
- * If preempt_disable() is working correctly, thread1 should not preempt and 
+ * If preempt_disable() is working correctly, thread1 should not preempt and
  * wait the full delay of 5 seconds, printing, and then exiting.
  * Thread2 is then scheduled to run and it enqueues thread3, re-enable preempts, and then
- * enters a delay of 1 second. 
+ * enters a delay of 1 second.
  * If preempt_enable() is working correctly, thread2 should be preempted and then yield to thread3.
  * Thread3 prints and exits, context switching back to thread2. Thread2 then prints and exits,
  * finishing the program.

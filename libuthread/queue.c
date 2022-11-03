@@ -6,13 +6,13 @@
 #include "queue.h"
 #include "private.h"
 
-struct node 
+struct node
 {
 	void *next;
 	void *data;
 };
 
-struct queue 
+struct queue
 {
 	struct node *head;
 	struct node *tail;
@@ -37,7 +37,7 @@ int queue_length(queue_t queue)
 	/* Iterate from head of queue */
 	int length = 0;
 	struct node *curNode = queue->head;
-	
+
 	while(curNode != NULL)
 	{
 		length++;
@@ -48,17 +48,17 @@ int queue_length(queue_t queue)
 }
 
 /**
- * @brief Creates a struct queue data type, initializes head 
+ * @brief Creates a struct queue data type, initializes head
  * and tail to NULL
  *
- * @param none 
- * @return Returns a struct queue address 
+ * @param none
+ * @return Returns a struct queue address
  */
 queue_t queue_create(void)
 {
 	queue_t q = malloc(sizeof(struct queue));
 
-	if(q == NULL) 
+	if(q == NULL)
 	{
 		return NULL;
 	}
@@ -77,12 +77,12 @@ queue_t queue_create(void)
  */
 int queue_destroy(queue_t queue)
 {
-	/* If queue is NULL or not empty */ 
+	/* If queue is NULL or not empty */
 	if(queue == NULL || queue_length(queue) != 0)
 	{
 		return -1;
 	}
-	
+
 	free(queue);
 	return 0;
 }
@@ -118,17 +118,17 @@ int queue_enqueue(queue_t queue, void *data)
 		queue->tail->next = newNode;
 		queue->tail = newNode;
 	}
-	
+
 	return 0;
 }
 
 /**
- * @brief Dequeues the head of @queue and assigns its 
- * data to @data 
+ * @brief Dequeues the head of @queue and assigns its
+ * data to @data
  *
  * @param queue The queue to be popped
  * @param data Address of data pointer to be assigned
- * @return Returns -1 if @queue, @data is NULL, or 
+ * @return Returns -1 if @queue, @data is NULL, or
  * length of queue is 0, returns 0 if dequeue was successful
  */
 int queue_dequeue(queue_t queue, void **data)
@@ -141,7 +141,7 @@ int queue_dequeue(queue_t queue, void **data)
 
 	/* save head node */
 	struct node *front = queue->head;
-	
+
 	/* if queue has one item, empty queue */
 	if(queue_length(queue) == 1)
 	{
@@ -166,7 +166,7 @@ int queue_dequeue(queue_t queue, void **data)
  *
  * @param queue The queue to delete from
  * @param data Data to find and delete
- * @return Returns -1 if @queue, @data is NULL, or 
+ * @return Returns -1 if @queue, @data is NULL, or
  * data is not found, returns 0 if delete was successful
  */
 int queue_delete(queue_t queue, void *data)
@@ -176,16 +176,16 @@ int queue_delete(queue_t queue, void *data)
 	{
 		return -1;
 	}
-	
+
 	struct node *curr = queue->head;
 	struct node *currPrev = NULL;
 
 	/* loop through list */
 	while(curr)
 	{
-		if(*(int *)curr->data == *(int *)data) 
+		if(*(int *)curr->data == *(int *)data)
 		{
-			
+
 			if(queue_length(queue) == 1)
 			{
 				queue->head = NULL;
@@ -203,7 +203,7 @@ int queue_delete(queue_t queue, void *data)
 				queue->tail = currPrev;
 			}
 			/* if data found in middle */
-			else 
+			else
 			{
 				currPrev->next = curr->next;
 			}
@@ -224,7 +224,7 @@ int queue_delete(queue_t queue, void *data)
  *
  * @param queue The queue to iterate through
  * @param func Function to be called on each queue item
- * @return Returns -1 if @queue, @func is NULL,  
+ * @return Returns -1 if @queue, @func is NULL,
  * returns 0 if iterate was successful
  */
 int queue_iterate(queue_t queue, queue_func_t func)
@@ -235,7 +235,7 @@ int queue_iterate(queue_t queue, queue_func_t func)
 	}
 
 	struct node *curNode = queue->head;
-	
+
 	while(curNode != NULL)
 	{
 		func(queue, curNode->data);
