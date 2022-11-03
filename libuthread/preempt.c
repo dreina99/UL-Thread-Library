@@ -25,7 +25,6 @@ struct itimerval newValue;
 struct itimerval oldValue;
 int timerType;
 
-
 /**
  * @brief Signal handler for SIGVTALRM, yields to next available thread
  *
@@ -41,7 +40,6 @@ void preempt_handler(int signum)
 	}
 }
 
-
 /**
  * @brief Disable preemption
  *
@@ -54,7 +52,6 @@ void preempt_disable(void)
 	sigaddset(&ss, SIGVTALRM);
 	sigprocmask(SIG_BLOCK, &ss, NULL);
 }
-
 
 /**
  * @brief Enable preemption
@@ -69,7 +66,6 @@ void preempt_enable(void)
 	sigaddset(&ss, SIGVTALRM);
 	sigprocmask(SIG_UNBLOCK, &ss, NULL);
 }
-
 
 /**
  * @brief Start thread preemption, create a timer that raises SIGVTALRM every 100Hz
@@ -105,7 +101,6 @@ void preempt_start(bool preempt)
 	/* Start internal timer */
 	setitimer(timerType, &newValue, &oldValue);
 }
-
 
 /**
  * @brief Stop thread preemption, restore previous timer and sigaction configurations

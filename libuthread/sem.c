@@ -7,7 +7,6 @@
 #include "sem.h"
 #include "uthread.h"
 
-
 struct semaphore 
 {
 	int count;
@@ -35,7 +34,6 @@ sem_t sem_create(size_t count)
 	return sem;
 }
 
-
 /**
  * @brief Deallocate a sempahore
  *
@@ -53,7 +51,6 @@ int sem_destroy(sem_t sem)
 	free(sem);
 	return 0;
 }
-
 
 /**
  * @brief Take a resource from the semaphore, block current thread if resource is unavailable
@@ -91,7 +88,6 @@ int sem_down(sem_t sem)
 	return 0;
 }
 
-
 /**
  * @brief Release a resource to the semaphore, unblock first in blocked queue if any
  *
@@ -111,10 +107,10 @@ int sem_up(sem_t sem)
 	/* 'Wake up' first thread in blockedQ */
 	if(queue_length(sem->blockedQ))
 	{
-		void *pop;
-		queue_dequeue(sem->blockedQ, &pop);
+		void *popped;
+		queue_dequeue(sem->blockedQ, &popped);
 
-		struct uthread_tcb *wakingThread = pop;
+		struct uthread_tcb *wakingThread = popped;
 		uthread_unblock(wakingThread);
 	}
 

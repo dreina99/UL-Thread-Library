@@ -15,7 +15,6 @@
 #define EXITED 2
 #define BLOCKED 3
 
-
 struct node 
 {
 	void *next;
@@ -54,7 +53,6 @@ void printQ(queue_t q, void *data)
         printf("state: %d\n", curNode->state);
 }
 
-
 /**
  * @brief Get current running thread
  *
@@ -65,7 +63,6 @@ struct uthread_tcb *uthread_current(void)
 {
 	return threadQ->head->data;
 }
-
 
 /**
  * @brief Runs the multithreading library
@@ -97,16 +94,16 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 	while(1)
 	{
-		void *temp;
+		void *popped;
 
 		preempt_disable();
-		if(queue_dequeue(threadQ, &temp) == -1) /* If dequeue fails */
+		if(queue_dequeue(threadQ, &popped) == -1) /* If dequeue fails */
 		{	
 			break;
 		}
 		preempt_enable();
 
-		currThread = temp;
+		currThread = popped;
 		
 		/* If currThread finished, free allocated memory */
 		if(currThread->state == EXITED)
@@ -140,7 +137,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	return 0;
 }
 
-
 /**
  * @brief Current running thread can yield for other threads to execute 
  *
@@ -155,13 +151,13 @@ void uthread_yield(void)
 		return;
 	}
 
-	void *temp;
+	void *popped;
 
 	preempt_disable(); 
-	queue_dequeue(threadQ, &temp);
+	queue_dequeue(threadQ, &popped);
 	preempt_enable();
 
-	struct uthread_tcb *yieldingThread = temp;
+	struct uthread_tcb *yieldingThread = popped;
 	struct uthread_tcb *newHead = threadQ->head->data;
 
 	/* If yieldingThread hasn't finished, change to ready and re-enqueue */
@@ -178,7 +174,6 @@ void uthread_yield(void)
 
 	uthread_ctx_switch(yieldingThread->threadCtx, newHead->threadCtx);
 }
-
 
 /**
  * @brief Exit from the current running thread
@@ -205,7 +200,6 @@ void uthread_exit(void)
 	exit(0);
 }
 
-
 /**
  * @brief Create a new thread
  *
@@ -217,22 +211,21 @@ int uthread_create(uthread_func_t func, void *arg)
 {
 	/* create new tcb */
 	struct uthread_tcb *newThread = malloc(sizeof(struct uthread_tcb));
-	newThread->threadCtx = uthread_ctx_alloc_stack();
+	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
 	newThread->stackPointer = uthread_ctx_alloc_stack();
 	newThread->state = READY;
-		
+
 	if(uthread_ctx_init(newThread->threadCtx, newThread->stackPointer, func, arg) || newThread == NULL)
 	{
 		return -1;
 	}
-	
+
 	preempt_disable();
 	queue_enqueue(threadQ, newThread);
 	preempt_enable();
 
 	return 0;
 }
-
 
 /**
  * @brief Block current running thread
@@ -245,7 +238,6 @@ void uthread_block(void)
 	uthread_current()->state = BLOCKED;
 	uthread_yield();
 }
-
 
 /**
  * @brief Unblock current running thread

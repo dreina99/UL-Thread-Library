@@ -47,7 +47,6 @@ int queue_length(queue_t queue)
 	return length;
 }
 
-
 /**
  * @brief Creates a struct queue data type, initializes head 
  * and tail to NULL
@@ -69,7 +68,6 @@ queue_t queue_create(void)
 	return q;
 }
 
-
 /**
  * @brief Destroys an empty @queue
  *
@@ -88,7 +86,6 @@ int queue_destroy(queue_t queue)
 	free(queue);
 	return 0;
 }
-
 
 /**
  * @brief Enqueues the address of @data into @queue
@@ -124,7 +121,6 @@ int queue_enqueue(queue_t queue, void *data)
 	
 	return 0;
 }
-
 
 /**
  * @brief Dequeues the head of @queue and assigns its 
@@ -163,7 +159,6 @@ int queue_dequeue(queue_t queue, void **data)
 	free(front);
 	return 0;
 }
-
 
 /**
  * @brief Deletes the item in @queue equal to @data,
@@ -222,7 +217,6 @@ int queue_delete(queue_t queue, void *data)
 
 	return -1;
 }
-
 
 /**
  * @brief Calls given callback function @func on each item

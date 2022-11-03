@@ -35,7 +35,6 @@ void iterator_inc(queue_t q, void *data)
 	}
 }
 
-
 /**
  * @brief Helper queue_func_t function to test queue_iterate()
  */
@@ -48,7 +47,6 @@ void printQ(queue_t q, void *data)
 }
 /* HELPER FUNCTIONS END */
 
-
 /**
  * @brief Test queue_create() 
  */
@@ -57,27 +55,25 @@ void test_create(void)
 	TEST_ASSERT(queue_create() != NULL);
 }
 
-
 /**
  * @brief Test queue_iterate(), queue_length(), queue_delete() and queue_enqueue()
  */
 void test_iterator(void)
 {
 	queue_t q;
-    int data[] = {1, 2, 3, 4, 5, 42, 6, 7, 8, 9};
-    size_t i;
+	int data[] = {1, 2, 3, 4, 5, 42, 6, 7, 8, 9};
+	size_t i;
 
-    /* Initialize the queue and enqueue items */
-    q = queue_create();
-    for (i = 0; i < sizeof(data) / sizeof(data[0]); i++)
-        queue_enqueue(q, &data[i]);
+	/* Initialize the queue and enqueue items */
+	q = queue_create();
+	for (i = 0; i < sizeof(data) / sizeof(data[0]); i++)
+		queue_enqueue(q, &data[i]);
 
-    /* Increment every item of the queue, delete item '42' */
-    queue_iterate(q, iterator_inc);
-    TEST_ASSERT(data[0] == 2);
-    TEST_ASSERT(queue_length(q) == 9);
+	/* Increment every item of the queue, delete item '42' */
+	queue_iterate(q, iterator_inc);
+	TEST_ASSERT(data[0] == 2);
+	TEST_ASSERT(queue_length(q) == 9);
 }
-
 
 /**
  * @brief Test queue_dequeue() and queue_enqueue()
@@ -94,7 +90,6 @@ void test_queue_simple(void)
 	TEST_ASSERT(ptr == &data);
 }
 
-
 /**
  * @brief Test queue_delete() on empty queue
  */
@@ -107,30 +102,27 @@ void test_delete_empty(void)
 	TEST_ASSERT(queue_delete(q, a) == -1);
 }
 
-
 /**
  * @brief Test queue_destroy() on NULL queue
  */
 void test_destroy_null(void)
 {
-    queue_t q;
-    q = NULL;
+	queue_t q;
+	q = NULL;
 	TEST_ASSERT(queue_destroy(q) == -1);
 }
-
 
 /**
  * @brief Test queue_destroy() on non-empty queue
  */
 void test_destroy_nonempty(void)
 {
-    queue_t q;
-    q = queue_create();
+	queue_t q;
+	q = queue_create();
 	int a = 42;
 	queue_enqueue(q, &a);
 	TEST_ASSERT(queue_destroy(q) == -1);
 }
-
 
 /**
  * @brief Test queue_delete() on single node queue
@@ -146,7 +138,6 @@ void test_delete_single(void)
 	TEST_ASSERT(queue_delete(q, ptr) == 0);
 }
 
-
 /**
  * @brief Test queue_iterate() on NULL params
  */
@@ -160,7 +151,6 @@ void test_iterate_null(void)
 	queue_func_t func = NULL;
 	TEST_ASSERT(queue_iterate(q, func) == -1);
 }
-
 
 /**
  * @brief Test all possible returns of queue_dequeue(queue_t queue, void **data)
@@ -194,7 +184,6 @@ void test_dequeue(void)
 	TEST_ASSERT(queue_dequeue(q1, ptr2) == -1);
 }
 
-
 /**
  * @brief Test all possibile returns for queue_length()
  */
@@ -215,7 +204,6 @@ void test_queue_length(void)
 	TEST_ASSERT(queue_length(q2) == 0);
 	TEST_ASSERT(queue_length(q3) == -1);
 }
-
 
 /**
  * @brief Test all possible returns for queue_enqueue(queue_t queue, void *data)
@@ -242,7 +230,6 @@ void test_enqueue(void)
 	/* null queue, null data */
 	TEST_ASSERT(queue_enqueue(q2, d2) == -1);
 }
-
 
 /**
  * @brief Test all possible returns for queue_delete(queue_t queue, void *data)
@@ -283,14 +270,13 @@ void test_delete(void)
 	TEST_ASSERT(queue_length(q1) == 0);
 }
 
-
 int main(void)
 {
 	test_create();
 	test_queue_simple();
-    test_iterator();
+	test_iterator();
 	test_delete_empty();
-    test_destroy_nonempty();
+	test_destroy_nonempty();
 	test_delete_single();
 	test_iterate_null();
 	test_dequeue();

@@ -25,7 +25,6 @@
 #include <time.h>
 #include <uthread.h>
 
-
 /**
  * @brief Simulate a delay for preemption
  *
