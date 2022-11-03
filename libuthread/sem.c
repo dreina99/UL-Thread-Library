@@ -8,35 +8,11 @@
 #include "uthread.h"
 
 
-struct node 
-{
-	void *next;
-	void *data;
-};
-
-struct queue 
-{
-	struct node *head;
-	struct node *tail;
-};
-
-struct uthread_tcb 
-{
-	uthread_ctx_t *threadCtx;
-	char *stackPointer;
-	int state;
-	int threadNum;
-};
-
 struct semaphore 
 {
 	int count;
 	queue_t blockedQ;
 };
-
-/* Extern to get access to threadQ  */
-extern queue_t threadQ;
-
 
 /**
  * @brief Allocate and initialize a semaphore

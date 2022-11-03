@@ -6,19 +6,22 @@ CC 		:= gcc
 CCFLAGS := -Wall -Wextra -Werror -MMD
 CCFLAGS	+= -g
 
+# Current directory
+CUR_PWD := $(shell pwd)
+
 all: $(targets)
 
 deps := $(patsubst %.o,%.d,$(objs))
 -include $(deps)
 
 %.o: %.c
-	@echo "CC $@"
+	@echo "CC	$@"
 	@$(CC) $(CCFLAGS) -c -o $@ $<
 
 $(lib): $(objs)
-	@echo "AR $@"
+	@echo "AR	$@"
 	@ar rcs $(lib) $^
 
 clean:
-	@echo "CLEAN"
+	@echo "CLEAN	$(CUR_PWD)"
 	@rm -f $(targets) $(objs) $(deps)

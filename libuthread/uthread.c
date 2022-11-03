@@ -15,6 +15,7 @@
 #define EXITED 2
 #define BLOCKED 3
 
+
 struct node 
 {
 	void *next;
@@ -37,7 +38,6 @@ struct uthread_tcb
 /* Keep the queue of threads and idleThread context global */
 queue_t threadQ;
 uthread_ctx_t ctx[1];
-
 
 /**
  * @brief queue_funct_t Helper function, prints out state's of given queue starting from head end

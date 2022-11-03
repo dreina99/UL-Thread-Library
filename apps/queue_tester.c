@@ -18,7 +18,7 @@ do {									\
 
 /* HELPER FUNCTIONS START */
 /**
- * @brief Helper iterator_inc function to test queue_iterate()
+ * @brief Helper queue_func_t function to test queue_iterate()
  * with arithimetic functions
  */
 void iterator_inc(queue_t q, void *data)
