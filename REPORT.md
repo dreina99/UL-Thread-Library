@@ -1,16 +1,21 @@
 # **User-level Thread Library Implementation**
 
-## **Implementation** Our implementation of this program is broken down into the
-creation of four APIs:
+## **Implementation**
 
-1. Queue API 2. Uthread API 3. Semaphore API 4. Preemption API
+Our implementation of this program is broken down into the creation of four APIs:
+
+1. Queue API
+2. Uthread API
+3. Semaphore API
+4. Preemption API
 
 <br>
 
-## **Queue API** We decided to implement our queue using a linked list, each
-node in the list is a `struct node` containing members for:
+## **Queue API**
+We decided to implement our queue using a linked list, each node in the list is a `struct node` containing members for:
 
-* `node *next` `void *data`
+* `node *next`
+* `void *data`
 
 The `next` member holds the address to the next node in the linked list, while
 the `data` member holds the address of any data type since its a `void*`. In our
@@ -20,7 +25,9 @@ define later.
 As for the Queue API functions, we implemented them as specified by the
 documentation in `queue.h`.
 
-### *Testing* We created unit tests for every function defined in our Queue API.
+### *Testing*
+
+We created unit tests for every function defined in our Queue API.
 Our main goal was to reach 100% coverage in `queue.c`, but we also made sure to
 test for corner cases such as dequeueing or deleting the last node in the linked
 list.
@@ -36,7 +43,9 @@ The Uthread API is implemented using a queue of `struct uthread_tcb` that are
 continuously updated as threads are created, yielded, and exited. Our `struct
 uthread_tcb` hold three important pieces of information:
 
-* `uthread_ctx_t *threadCtx` `char *stackPointer` `int state`
+* `uthread_ctx_t *threadCtx`
+* `char *stackPointer`
+* `int state`
 
 `threadCtx` is used to manage the process context while the stack pointer keeps
 track of the thread's allocated stack. The state variable is assigned a macro,
@@ -81,11 +90,12 @@ All testing for this phase was completeed with the provided programs in /apps
 
 Our semaphore struct contains two data members:
 
-* `int count` `queue_t blockedQ`
+* `int count`
+* `queue_t blockedQ`
 
 `count` represents the number of resources available in the semaphore for
 threads and `blockedQ` is a queue that holds all of the blocked threads that are
-'asleep' waiting for the semaphore's resources to become available. We decided
+'asleep,' waiting for the semaphore's resources to become available. We decided
 to keep `blockedQ` strictly in `sem.c`  as it was simpler and created less
 clutter in `uthread.c`.
 
@@ -103,7 +113,9 @@ happens by dequeueing the first element in the `blockedQ` and calling
 `uthread_unblock()`, which will change the thread's state and add it back into
 `uthread.c`'s `threadQ` so it can be scheduled as normal.
 
-### *Testing* Along with the provided test files, we created our own file named
+### *Testing*
+
+Along with the provided test files, we created our own file named
 `sem_corner.c` which tests the corner case where a thread takes a semaphore's
 resource before a thread in the blocked queue can be awoken. For this test, we
 added three threads to `threadQ` and blocked the first thread. When switching to
@@ -111,17 +123,16 @@ the second thread we freed the semaphore. However, the third thread takes this
 resource before thread 1 wakes up, so thread 1 is left idling and never gets to
 run its print statement.
 
-
 <br>
-
 
 ## **Preemption API**
 
 To implement preemption we followed these steps:
 
-1. Create a sigaction that listens for `SIGVTALRM` 2. Define the signal handler
-function 3. Create a virtual timer that raises `SIGVTALRM` every 100Hz 4.
-Restore previous timer and action configurations
+1. Create a sigaction that listens for `SIGVTALRM`
+2. Define the signal handler function
+3. Create a virtual timer that raises `SIGVTALRM` every 100Hz
+4. Restore previous timer and action configurations
 
 Of these steps, the only noteworthy parts are restoring the timer and action
 configurations and our signal handler function.
@@ -140,9 +151,8 @@ sigaction oldHandler` and `struct itimerval oldValue`.
 But the previous configurations are not actually restored until we call
 `preempt_stop()` which executes:
 
-* `sigaction(SIGVTALRM, &oldHandler, NULL)` `setitimer(timerType, &oldValue,
-* NULL)`
-
+* `sigaction(SIGVTALRM, &oldHandler, NULL)`
+* `setitimer(timerType, &oldValue, NULL)`
 
 ### *Testing*
 
@@ -158,13 +168,15 @@ milliseconds)`. We call this function in our test threads to simulate a thread
 Tests the preemption of various threads using `delay()` to control the order of
 execution. The sequence of this tester is as follows:
 
-1. `thread1` enqueues `thread2` and then enters a delay for 2 seconds.  2.
-Preempt to `thread2`.  3. `thread2` enqueues `thread3` and then enters a delay
-for 1 second.  4. Preempt to `thread3` 5. `thread3` then prints, exits, and
-context switches back to `thread1`.  6. `thread1` and `thread2` preempt to one
-another until thread2 finishes its 1 second delay.  7. `thread2` prints, exits,
-and context switches to `thread1` 8. `thread1` finshes its delay, prints, and
-exits.  9. Finishing the program with output in the order: `thread3`, `thread2`,
+1. `thread1` enqueues `thread2` and then enters a delay for 2 seconds.  
+2. Preempt to `thread2`.  
+3. `thread2` enqueues `thread3` and then enters a delay for 1 second.  
+4. Preempt to `thread3`
+5. `thread3` then prints, exits, and context switches back to `thread1`.  
+6. `thread1` and `thread2` preempt to one another until thread2 finishes its 1 second delay.
+7. `thread2` prints, exits, and context switches to `thread1`
+8. `thread1` finshes its delay, prints, and exits.
+9. Finishing the program with output in the order: `thread3`, `thread2`,
 `thread1`
 
 <br>
@@ -177,26 +189,27 @@ threads using `delay()` to control the order of execution. We included
 disable or enable preemption. The sequence of this tester is as follows:
 
 1. `thread1` enqueues `thread2`, calls `preempt_disable()`, and enters a delay
-of 5 seconds.  2. Since preempts were disabled, `thread1` will wait the full 5
-second delay without getting preempted, print, and then exit.  3. `thread2` is
-then scheduled to run, it enqueues `thread3`, calls `preempt_enable()`, and then
-enters a delay for 1 second.  4. Since preempts were enabled, `thread2` will get
-preempted.  5. Preempt to `thread3`.  6. `thread3` prints and exits.  7.
-`thread2` is scheduled to run, prints and exits.  8. Finishing the program with
-output in the order: `thread1`, `thread3`, `thread2`
+of 5 seconds.  
+2. Since preempts were disabled, `thread1` will wait the full 5 second delay without getting preempted, print, and then exit.  
+3. `thread2` is then scheduled to run, it enqueues `thread3`, calls `preempt_enable()`, and then enters a delay for 1 second.  
+4. Since preempts were enabled, `thread2` will get preempted.  
+5. Preempt to `thread3`.  
+6. `thread3` prints and exits.  
+7. `thread2` is scheduled to run, prints, and exits.
+8. Finishing the program with output in the order: `thread1`, `thread3`, `thread2`
 
 <br>
 
 #### *test_preempt_stop.c*
 
-Tests `preempt_stop()` over the execution various of threads using `delay()` to
+Tests `preempt_stop()` over the execution of various threads using `delay()` to
 control the order of execution. We included `private.h` for testing purposes,
 normally user code would not be able to stop preemption. The sequence of this
 tester is as follows:
 
 1. `thread1` enqueues `thread2`, calls `preempt_stop()`, then enters a delay of
-5 seconds.  2. Since we restored action and timer configurations, preemption
-will not call our custom signal handler.  3. `thread1` waits the full 5 second
-delay, prints, and then exits.  4. `thread2` is scheduled to run, it prints and
-then exits.  5. Finishing the program with output in the order: `thread1`,
-`thread2`
+5 seconds.  
+2. Since we restored action and timer configurations, preemption will not call our custom signal handler.  
+3. `thread1` waits the full 5 second delay, prints, and then exits.  
+4. `thread2` is scheduled to run, it prints and then exits.  
+5. Finishing the program with output in the order: `thread1`, `thread2`

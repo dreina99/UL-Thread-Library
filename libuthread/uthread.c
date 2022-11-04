@@ -211,7 +211,7 @@ int uthread_create(uthread_func_t func, void *arg)
 {
 	/* create new tcb */
 	struct uthread_tcb *newThread = malloc(sizeof(struct uthread_tcb));
-	newThread->threadCtx = malloc(sizeof(uthread_ctx_t));
+	newThread->threadCtx = uthread_ctx_alloc_stack();
 	newThread->stackPointer = uthread_ctx_alloc_stack();
 	newThread->state = READY;
 
